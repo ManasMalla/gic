@@ -1,26 +1,72 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Brand tokens. Palette is taken from the GIC site + the 2026 partnership brochure. */
+@theme {
+  --color-brand: #007367;
+  --color-brand-dark: #005a50;
+  --color-forest: #00473f;
+  --color-forest-deep: #003630;
+  --color-mint: #8ecdb8;
+  --color-mint-soft: #eef5f3;
+  --color-gold: #e2b33f;
+  --color-coral: #dc7570;
+  --color-sky: #6090cf;
+  --color-cream: #f4e4c9;
+  --color-cream-soft: #fcf3e4;
+  --color-ink: #101820;
+  --color-muted: #5d6b6a;
+  --color-line: #dfe7e5;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-display: var(--font-forma), "Inter", system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --radius-card: 1.25rem;
+  --shadow-card: 0 1px 2px rgb(16 24 32 / 0.04), 0 8px 24px -8px rgb(16 24 32 / 0.12);
+
+  --animate-marquee: marquee 40s linear infinite;
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 8rem;
+  }
+  body {
+    background: white;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+  }
+}
+
+@layer utilities {
+  /* Brand triangle pattern used on the hero & dark sections */
+  .bg-triangles {
+    background-image:
+      linear-gradient(135deg, rgb(142 205 184 / 0.18) 25%, transparent 25%),
+      linear-gradient(225deg, rgb(142 205 184 / 0.1) 25%, transparent 25%),
+      linear-gradient(315deg, rgb(226 179 63 / 0.08) 25%, transparent 25%);
+    background-size: 120px 120px;
+  }
+  .bg-dots {
+    background-image: radial-gradient(rgb(142 205 184 / 0.55) 3px, transparent 3.5px);
+    background-size: 26px 26px;
+  }
 }

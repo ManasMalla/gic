@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GITAM Innovation Challenge — website
 
-## Getting Started
-
-First, run the development server:
+Next.js (App Router, TypeScript, Tailwind v4). Fully self-hosted: no runtime
+requests to `gic.gitam.edu`, `cdn.gitam.edu`, or any third-party CDN.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # http://localhost:3000
+npm run build && npm start
+npm run typecheck && npm run lint
+npm run media:manifest   # re-run after adding/removing images in public/media
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+> Next.js 16 with `cacheComponents` on. Read `node_modules/next/dist/docs/` before
+> relying on older Next knowledge (see `AGENTS.md`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Where things live
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+  app/                    routes (all statically prerendered)
+    page.tsx              home — composes sections
+    sponsors/             partnership page (from the 2026 brochure)
+    register/             registration wizard + server action
+  components/
+    ui/                   Container, Section/SectionHeading, Button, RichText
+    layout/               header, footer, mobile nav
+    sections/             one file per homepage section
+    sponsors/             sponsor-page sections
+    register/             wizard + form fields
+  content/                ALL copy & data as typed modules  <- edit text here
+    site.ts  tracks.ts  timeline.ts  themes.ts  process.ts  prizes.ts
+    people.ts  partners.ts  experience.ts  faq.ts  sponsorship.ts
+    media.generated.json  (generated: image sizes)
+  lib/
+    media.ts              media("/media/x.webp") -> { src, width, height }
+    gevents.ts            payment hand-off to GEvents (single place to change)
+    registration/         zod schema + repository (storage boundary)
+  fonts/                  Forma DJR Display (self-hosted via next/font/local)
+public/
+  media/                  WebP images (gallery capped at 1920px)
+  videos/                 H.264 720p MP4 + WebP posters
+  documents/              brochures, results, pitch-deck template
+```
 
-## Learn More
+Design tokens (colours, fonts, radii) are in `src/app/globals.css` under `@theme`.
 
-To learn more about Next.js, take a look at the following resources:
+## Registration flow
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`/register` is a 4-step wizard (team → idea → members → review). Validation uses
+one zod schema (`lib/registration/schema.ts`) on both client and server.
+On submit, the server action (`app/register/actions.ts`) validates, stores the
+application via `RegistrationRepository`, and returns an application reference.
+The user then continues to GEvents to pay.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Not production-ready yet — decisions needed:**
 
-## Deploy on Vercel
+1. `lib/registration/repository.ts` ships a **local-disk** adapter (`.data/`,
+   git-ignored). Replace with a real DB + object storage (e.g. Postgres + S3/R2).
+2. `lib/gevents.ts` sends people to the GEvents registration page; it accepts no
+   prefilled data, so we show our reference to quote. Agree a callback/deep-link
+   contract with the GEvents team to mark applications as paid automatically.
+3. No accounts/auth yet (profile, project updates, submissions). Planned as an
+   `(app)` route group behind auth, separate from the public marketing routes.
+4. No captcha / rate-limiting on the form — add before launch.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Source of truth for content
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Competition details (dates, fees, prizes, FAQ) follow the live gic.gitam.edu
+site. `content/sponsorship.ts` follows the 2026 partnership brochure, which
+differs in places (see git history / handoff notes).

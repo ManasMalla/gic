@@ -1,0 +1,706 @@
+{
+ "/media/brand/2023video.webp": {
+  "width": 1289,
+  "height": 724
+ },
+ "/media/brand/2024video.webp": {
+  "width": 1299,
+  "height": 681
+ },
+ "/media/brand/award.webp": {
+  "width": 512,
+  "height": 512
+ },
+ "/media/brand/choice-award.webp": {
+  "width": 512,
+  "height": 512
+ },
+ "/media/brand/gic-logo-white.webp": {
+  "width": 826,
+  "height": 432
+ },
+ "/media/brand/gic-logo.webp": {
+  "width": 729,
+  "height": 386
+ },
+ "/media/brand/gitam-logo-green.png": {
+  "width": 173,
+  "height": 66
+ },
+ "/media/brand/gitam-logo.png": {
+  "width": 173,
+  "height": 66
+ },
+ "/media/brand/idea.webp": {
+  "width": 512,
+  "height": 512
+ },
+ "/media/brand/main-banner.webp": {
+  "width": 1600,
+  "height": 500
+ },
+ "/media/brand/new-banner-1.webp": {
+  "width": 1600,
+  "height": 500
+ },
+ "/media/brand/new-banner-2.webp": {
+  "width": 1600,
+  "height": 500
+ },
+ "/media/brand/new-banner-3.webp": {
+  "width": 1600,
+  "height": 500
+ },
+ "/media/brand/runnerup.webp": {
+  "width": 512,
+  "height": 512
+ },
+ "/media/brand/vdc-logo.webp": {
+  "width": 825,
+  "height": 351
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-1.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-2.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-3.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-4.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-5.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-6.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-7.webp": {
+  "width": 1920,
+  "height": 1281
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-8.webp": {
+  "width": 1920,
+  "height": 1081
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-9.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-10.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-11.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-12.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-13.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-14.webp": {
+  "width": 1920,
+  "height": 1920
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-15.webp": {
+  "width": 1920,
+  "height": 1081
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-16.webp": {
+  "width": 1920,
+  "height": 1081
+ },
+ "/media/gallery/8th-oct/SmartIDEAthon-8th-oct-17.webp": {
+  "width": 1920,
+  "height": 1920
+ },
+ "/media/gallery/9th-august/SmartIDEAthon-9th-august-1.webp": {
+  "width": 1920,
+  "height": 2560
+ },
+ "/media/gallery/9th-august/SmartIDEAthon-9th-august-2.webp": {
+  "width": 1920,
+  "height": 1200
+ },
+ "/media/gallery/9th-august/SmartIDEAthon-9th-august-3.webp": {
+  "width": 1920,
+  "height": 1281
+ },
+ "/media/gallery/9th-august/SmartIDEAthon-9th-august-4.webp": {
+  "width": 1920,
+  "height": 1200
+ },
+ "/media/gallery/9th-august/SmartIDEAthon-9th-august-5.webp": {
+  "width": 1920,
+  "height": 2559
+ },
+ "/media/gallery/9th-august/SmartIDEAthon-9th-august-6.webp": {
+  "width": 1920,
+  "height": 1201
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-1.webp": {
+  "width": 1920,
+  "height": 1201
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-2.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-3.webp": {
+  "width": 1920,
+  "height": 1200
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-4.webp": {
+  "width": 1920,
+  "height": 1200
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-5.webp": {
+  "width": 1920,
+  "height": 1281
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-6.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-7.webp": {
+  "width": 1920,
+  "height": 1081
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-8.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-9.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-10.webp": {
+  "width": 1920,
+  "height": 1397
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-11.webp": {
+  "width": 1920,
+  "height": 1081
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-12.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-13.webp": {
+  "width": 1920,
+  "height": 2560
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-14.webp": {
+  "width": 1920,
+  "height": 1081
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-15.webp": {
+  "width": 1920,
+  "height": 1081
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-16.webp": {
+  "width": 1920,
+  "height": 2561
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-17.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/10th-august/SmartIDEAthon-10th-august-18.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-1.webp": {
+  "width": 1920,
+  "height": 2560
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-2.webp": {
+  "width": 1920,
+  "height": 1200
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-3.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-4.webp": {
+  "width": 1920,
+  "height": 2561
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-5.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-6.webp": {
+  "width": 1920,
+  "height": 1081
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-7.webp": {
+  "width": 1920,
+  "height": 1189
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-8.webp": {
+  "width": 1920,
+  "height": 2695
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-9.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-10.webp": {
+  "width": 1920,
+  "height": 1081
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-11.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-12.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-13.webp": {
+  "width": 1920,
+  "height": 1080
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-14.webp": {
+  "width": 1920,
+  "height": 1440
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-15.webp": {
+  "width": 1920,
+  "height": 955
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-16.webp": {
+  "width": 1920,
+  "height": 2560
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-17.webp": {
+  "width": 1920,
+  "height": 1173
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-18.webp": {
+  "width": 1920,
+  "height": 994
+ },
+ "/media/gallery/11th-august/SmartIDEAthon-11th-august-19.webp": {
+  "width": 1920,
+  "height": 1200
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-1.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-2.webp": {
+  "width": 1920,
+  "height": 1281
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-3.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-4.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-5.webp": {
+  "width": 1920,
+  "height": 2880
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-6.webp": {
+  "width": 1920,
+  "height": 2880
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-7.webp": {
+  "width": 1920,
+  "height": 2880
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-8.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-9.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-10.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-11.webp": {
+  "width": 1920,
+  "height": 1106
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-12.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-13.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-14.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-15.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-16.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-17.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-18.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-19.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day1/SmartIDEAthon-day1-20.webp": {
+  "width": 1920,
+  "height": 2877
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-1.webp": {
+  "width": 1920,
+  "height": 1237
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-2.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-3.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-4.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-5.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-6.webp": {
+  "width": 1920,
+  "height": 1222
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-7.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-8.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-9.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-10.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-11.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-12.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-13.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-14.webp": {
+  "width": 1920,
+  "height": 2880
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-15.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-16.webp": {
+  "width": 1920,
+  "height": 1282
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-17.webp": {
+  "width": 1920,
+  "height": 923
+ },
+ "/media/gallery/day2/SmartIDEAthon-day2-18.webp": {
+  "width": 1920,
+  "height": 1280
+ },
+ "/media/guests/bharath-Kumar.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/guests/Greg-Collier.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/guests/malini-parmar.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/guests/Muralidhar-nayak.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/guests/pavan-kumar.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/guests/Piyush-Verma.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/guests/Prasanth-warier.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/guests/Praveen-Dorna.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/guests/Raktim-Chattopadhyay.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/guests/ravi-ramamurti.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/guests/Sadhguru-JV.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/guests/Sameer-Desai.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/guests/suresh-garg.webp": {
+  "width": 233,
+  "height": 216
+ },
+ "/media/logos/airc.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/ALIF-logo.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/balavikas.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/bower.webp": {
+  "width": 320,
+  "height": 120
+ },
+ "/media/logos/coempt.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/ctrls.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/d2d_logo.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/dpiit.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/e-club.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/faba.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/footer-eclub.webp": {
+  "width": 600,
+  "height": 171
+ },
+ "/media/logos/gitam-logos-header.webp": {
+  "width": 600,
+  "height": 219
+ },
+ "/media/logos/gitamit.webp": {
+  "width": 600,
+  "height": 212
+ },
+ "/media/logos/gitamvdc.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/github.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/global-tree.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/grammena.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/grayquest.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/gtec.webp": {
+  "width": 439,
+  "height": 154
+ },
+ "/media/logos/headstart.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/hub.webp": {
+  "width": 320,
+  "height": 120
+ },
+ "/media/logos/IHH-logo.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/img_2.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/jtbi.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/karnataka.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/moschip.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/nutrify.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/openct-logo.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/qapita.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/rich.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/RTIH-logo.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/science-city.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/st.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/startup.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/t-hub.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/tez.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/thinking-forks.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/tic.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/tie-hyderabad.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/TIE.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/vdc-wordmark.webp": {
+  "width": 443,
+  "height": 176
+ },
+ "/media/logos/vizag-startups.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/wadwani.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/we-hub.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/logos/yo-vizag.webp": {
+  "width": 600,
+  "height": 200
+ },
+ "/media/themes/bioeconomy.webp": {
+  "width": 79,
+  "height": 100
+ },
+ "/media/themes/D2C.webp": {
+  "width": 80,
+  "height": 100
+ },
+ "/media/themes/deetech.webp": {
+  "width": 81,
+  "height": 100
+ },
+ "/media/themes/sports.webp": {
+  "width": 79,
+  "height": 100
+ },
+ "/media/themes/sustainability.webp": {
+  "width": 80,
+  "height": 100
+ }
+}
