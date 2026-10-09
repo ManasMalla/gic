@@ -12,6 +12,7 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "backend/**", // Deno project, linted with `deno lint`
   ]),
 ]);
 

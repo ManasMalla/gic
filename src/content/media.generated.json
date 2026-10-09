@@ -519,6 +519,10 @@
   "width": 320,
   "height": 120
  },
+ "/media/logos/brainybotz-official.webp": {
+  "width": 720,
+  "height": 546
+ },
  "/media/logos/coempt.webp": {
   "width": 600,
   "height": 200
@@ -559,15 +563,7 @@
   "width": 600,
   "height": 200
  },
- "/media/logos/github.webp": {
-  "width": 600,
-  "height": 200
- },
  "/media/logos/global-tree.webp": {
-  "width": 600,
-  "height": 200
- },
- "/media/logos/grammena.webp": {
   "width": 600,
   "height": 200
  },
@@ -627,10 +623,6 @@
   "width": 600,
   "height": 200
  },
- "/media/logos/science-city.webp": {
-  "width": 600,
-  "height": 200
- },
  "/media/logos/st.webp": {
   "width": 600,
   "height": 200
@@ -659,18 +651,6 @@
   "width": 600,
   "height": 200
  },
- "/media/logos/TIE.webp": {
-  "width": 600,
-  "height": 200
- },
- "/media/logos/vdc-wordmark.webp": {
-  "width": 443,
-  "height": 176
- },
- "/media/logos/vizag-startups.webp": {
-  "width": 600,
-  "height": 200
- },
  "/media/logos/wadwani.webp": {
   "width": 600,
   "height": 200
@@ -679,28 +659,24 @@
   "width": 600,
   "height": 200
  },
- "/media/logos/yo-vizag.webp": {
-  "width": 600,
-  "height": 200
- },
  "/media/themes/bioeconomy.webp": {
-  "width": 79,
-  "height": 100
+  "width": 768,
+  "height": 768
  },
- "/media/themes/D2C.webp": {
-  "width": 80,
-  "height": 100
+ "/media/themes/d2c.webp": {
+  "width": 768,
+  "height": 768
  },
- "/media/themes/deetech.webp": {
-  "width": 81,
-  "height": 100
+ "/media/themes/deeptech.webp": {
+  "width": 768,
+  "height": 768
  },
  "/media/themes/sports.webp": {
-  "width": 79,
-  "height": 100
+  "width": 768,
+  "height": 768
  },
  "/media/themes/sustainability.webp": {
-  "width": 80,
-  "height": 100
+  "width": 768,
+  "height": 768
  }
 }

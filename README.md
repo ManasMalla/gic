@@ -45,24 +45,57 @@ public/
 
 Design tokens (colours, fonts, radii) are in `src/app/globals.css` under `@theme`.
 
-## Registration flow
+## The applicant journey
 
-`/register` is a 4-step wizard (team → idea → members → review). Validation uses
-one zod schema (`lib/registration/schema.ts`) on both client and server.
-On submit, the server action (`app/register/actions.ts`) validates, stores the
-application via `RegistrationRepository`, and returns an application reference.
-The user then continues to GEvents to pay.
+1. **Apply** → `/register`. Signed-out visitors see "Continue with Google".
+2. **Sign in with Google** (OIDC, PKCE, ID-token verified). One Google account = one team application.
+3. **Team details** (track, team, members). No idea fields yet. Saved as `awaiting_payment` with a reference like `GIC26-R4A2DK3Q-6`.
+4. **Pay on GEvents** (`/register/payment`). We pass `?ref=…&track=…`; GEvents calls our webhook when paid.
+5. **`/register/payment-status`** polls until the webhook lands (also shows failed / refunded).
+6. **Portal** (`/portal`) opens only once paid: choose a theme, write the idea, upload the deck + video link.
+   Editable any number of times until `IDEA_EDIT_DEADLINE` (default 31 Oct 2026 23:59 IST), then read-only.
 
-**Not production-ready yet — decisions needed:**
+New applications stop at `REGISTRATION_DEADLINE` (default 31 Oct 2026 23:59 IST). Both are backend env vars.
 
-1. `lib/registration/repository.ts` ships a **local-disk** adapter (`.data/`,
-   git-ignored). Replace with a real DB + object storage (e.g. Postgres + S3/R2).
-2. `lib/gevents.ts` sends people to the GEvents registration page; it accepts no
-   prefilled data, so we show our reference to quote. Agree a callback/deep-link
-   contract with the GEvents team to mark applications as paid automatically.
-3. No accounts/auth yet (profile, project updates, submissions). Planned as an
-   `(app)` route group behind auth, separate from the public marketing routes.
-4. No captcha / rate-limiting on the form — add before launch.
+## Architecture
+
+```
+Browser ──▶ Next.js (Cloud Run) ──▶ Deno API (Cloud Run) ──▶ Cloud SQL (Postgres)
+              │  session cookie           ▲  x-internal-token + verified x-user-email
+              │  (signed JWT)             │
+              └─ Google OIDC              └─ POST /api/webhooks/gevents/payment  ◀── GEvents (HMAC-signed)
+```
+
+- The **website verifies the user's Google identity** and forwards the verified email to the backend with a
+  shared internal token. The backend scopes every query to that email (no user id ever comes from client input).
+- **Payments** are matched by reference, then transaction id, then payer/owner email; anything uncertain goes to an
+  admin review queue (`/api/admin/payments`). See `docs/gevents-payment-webhook.md`.
+- Sessions are an HS256 JWT in an HTTP-only, SameSite=Lax cookie (7 days).
+
+### Google sign-in setup (one-time, manual)
+
+1. Cloud Console → **APIs & Services → OAuth consent screen** (External is fine; add scopes `openid email profile`).
+2. **Credentials → Create credentials → OAuth client ID → Web application.**
+   Authorised redirect URIs, one per origin you serve from:
+   `https://gic.gitam.edu/api/auth/callback`, the `*.run.app` URL(s) `…/api/auth/callback`, `http://localhost:3000/api/auth/callback`.
+3. `deploy/set-google-oauth.sh` stores the client id/secret (and generates the session key) in Secret Manager.
+4. `APP_ALLOWED_ORIGINS` must list exactly the origins above (guards the redirect URI).
+5. Local testing without Google: set `AUTH_DEV_LOGIN=true` (the compose file does). It is hard-disabled on Cloud Run.
+
+### Running everything locally
+
+```bash
+docker compose up --build        # site http://localhost:8090 · API http://localhost:8091/api/health
+cd backend && deno task test     # needs DATABASE_URL etc. (see backend/src/integration_test.ts)
+```
+
+### Deploying
+
+`deploy/deploy.sh` (one-time infra + first deploy), `deploy/redeploy.sh backend|frontend [--no-build]`,
+`deploy/load-balancer.sh` (static IP, HTTPS, `gic.gitam.edu` routing).
+
+**Still open:** captcha/rate-limiting on the sign-in/registration endpoints; admin UI for the payment review queue;
+confirmation emails; a way for teams to change member details after paying (currently via email to the organisers).
 
 ## Source of truth for content
 

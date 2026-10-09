@@ -13,9 +13,9 @@ export const site = {
   grandFinale: { date: "11 December 2026", venue: "GITAM Hyderabad Campus" },
   registration: {
     opens: "05 Aug 2026",
-    closes: "10 Oct 2026",
+    closes: "31 Oct 2026",
     // Deadline for the header countdown (IST end of day). Change here to move the timer.
-    closesAt: "2026-10-10T23:59:59+05:30",
+    closesAt: "2026-10-31T23:59:59+05:30",
     extended: true,
   },
   contact: {

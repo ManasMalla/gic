@@ -1,14 +1,21 @@
 import Image from "next/image";
-import { media } from "@/lib/media";
+import { partners } from "@/content/partners";
 
+// The top-of-page strip reuses the exact logo files from the Partners section (one source of truth).
 // Order matches the original GIC banner: GITAM · Bower · E-Club · G-TEC · VDC
-const logos = [
-  { name: "GITAM", ...media("/media/logos/gitam-logos-header.webp"), h: "h-8" },
-  { name: "Bower School of Entrepreneurship", ...media("/media/logos/bower.webp"), h: "h-8" },
-  { name: "E-Club", ...media("/media/logos/e-club.webp"), h: "h-8" },
-  { name: "G-TEC — DST GITAM Technology Enabling Centre", ...media("/media/logos/gtec.webp"), h: "h-8" },
-  { name: "Venture Development Centre", ...media("/media/logos/vdc-wordmark.webp"), h: "h-8" },
+const order = [
+  "GITAM",
+  "Bower School of Entrepreneurship",
+  "E-Club",
+  "G-TEC (DST GITAM Technology Enabling Centre)",
+  "GITAM Venture Development Centre",
 ] as const;
+
+const logos = order.map((name) => {
+  const p = partners.find((x) => x.name === name);
+  if (!p) throw new Error(`LogoStrip: no partner named "${name}"`);
+  return p;
+});
 
 export function LogoStrip() {
   return (
@@ -18,7 +25,7 @@ export function LogoStrip() {
     >
       {logos.map((l) => (
         <li key={l.name}>
-          <Image src={l.src} width={l.width} height={l.height} alt={l.name} sizes="140px" className={`${l.h} w-auto object-contain`} />
+          <Image src={l.src} width={l.width} height={l.height} alt={l.name} sizes="140px" className="h-8 w-auto object-contain" />
         </li>
       ))}
     </ul>

@@ -3,16 +3,20 @@ import { tracks } from "@/content/tracks";
 /**
  * Payment hand-off to GITAM GEvents.
  *
- * Our app owns the application (team, idea, files, accounts); GEvents only
- * collects the registration fee. The GEvents registration page takes no
- * prefilled data today, so we send people to it and show them their GIC
- * application reference to quote. When the GEvents team exposes a callback /
- * deep-link contract, change ONLY this file.
+ * Our app owns the application (account, team, idea, files); GEvents only collects the fee and then
+ * calls our webhook (see docs/gevents-payment-webhook.md). We pass our reference (and track) in the URL
+ * so GEvents can echo it back. Until CATs support `ref`, the page ignores the extra parameters (harmless)
+ * and we also show the reference so the team can quote it.
  */
 const DEFAULT_URL = "https://gevents.gitam.edu/registration/ODkyMg==";
 
-export function paymentUrl(): string {
-  return process.env.GEVENTS_REGISTRATION_URL ?? DEFAULT_URL;
+export function paymentUrl(o?: { reference: string; track: "junior" | "main" }): string {
+  const url = new URL(process.env.GEVENTS_REGISTRATION_URL ?? DEFAULT_URL);
+  if (o) {
+    url.searchParams.set("ref", o.reference);
+    url.searchParams.set("track", o.track);
+  }
+  return url.toString();
 }
 
 export function feeFor(track: "junior" | "main"): number {

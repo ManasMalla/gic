@@ -1,12 +1,9 @@
 import { z } from "zod";
-import { themes } from "@/content/themes";
 
 export const TRACKS = ["junior", "main"] as const;
 export const GENDERS = ["female", "male", "other", "prefer-not-to-say"] as const;
-export const MAX_DECK_BYTES = 10 * 1024 * 1024;
-export const DECK_TYPES = [".pdf", ".ppt", ".pptx"];
 
-// Field rules mirror the original GEvents form (lengths, allowed characters).
+// Field rules mirror the original GEvents form (lengths, allowed characters) and the backend schema.
 const text = (label: string, max: number) =>
   z.string().trim().min(1, `${label} is required`).max(max, `${label} must be at most ${max} characters`);
 const name = (label: string) => text(label, 100).regex(/^[A-Za-z .'-]+$/, "Letters and spaces only");
@@ -29,6 +26,7 @@ const optionalMember = z.object({
   gender: z.union([z.literal(""), z.enum(GENDERS)]),
 });
 
+// Step 1 of the journey: the team. The idea (theme, title, deck…) is written later, in the portal, after payment.
 export const stepSchemas = {
   team: z.object({
     track: z.enum(TRACKS, "Choose a track"),
@@ -36,21 +34,13 @@ export const stepSchemas = {
     institution: text("Institution", 150),
     address: text("Address", 200),
     cityState: text("City & state", 100),
-    theme: z.enum(themes.map((t) => t.id) as [string, ...string[]], "Choose a theme"),
-  }),
-  idea: z.object({
-    ideaTitle: text("Idea / venture title", 150),
-    problemStatement: text("Problem statement", 300),
-    ideaSummary: text("Idea summary", 600),
-    pitchVideoLink: z.string().trim().max(255).pipe(z.url("Enter a valid link (YouTube, Drive…)")),
   }),
   members: z.object({
     founder: member,
     cofounder: member,
     member3: optionalMember,
     member4: optionalMember,
-    // Main Track only (teams of up to 6); ignored for Junior.
-    member5: optionalMember,
+    member5: optionalMember, // Main Track only (teams of up to 6)
     member6: optionalMember,
   }),
   confirm: z.object({
@@ -59,14 +49,9 @@ export const stepSchemas = {
   }),
 } as const;
 
-export const registrationSchema = z.object({
-  ...stepSchemas.team.shape,
-  ...stepSchemas.idea.shape,
-  ...stepSchemas.members.shape,
-  ...stepSchemas.confirm.shape,
-});
+export const teamSchema = z.object({ ...stepSchemas.team.shape, ...stepSchemas.members.shape, ...stepSchemas.confirm.shape });
 
-export type RegistrationInput = z.infer<typeof registrationSchema>;
+export type TeamInput = z.infer<typeof teamSchema>;
 export type StepId = keyof typeof stepSchemas;
 export type FieldErrors = Record<string, string>;
 
@@ -82,11 +67,6 @@ export function parseFormData(fd: FormData) {
     institution: get("institution"),
     address: get("address"),
     cityState: get("cityState"),
-    theme: get("theme"),
-    ideaTitle: get("ideaTitle"),
-    problemStatement: get("problemStatement"),
-    ideaSummary: get("ideaSummary"),
-    pitchVideoLink: get("pitchVideoLink"),
     founder: mem("founder"),
     cofounder: mem("cofounder"),
     member3: mem("member3"),
@@ -111,12 +91,4 @@ export function toFieldErrors(error: z.ZodError): FieldErrors {
 export function validateStep(step: StepId, fd: FormData): FieldErrors {
   const r = stepSchemas[step].safeParse(parseFormData(fd));
   return r.success ? {} : toFieldErrors(r.error);
-}
-
-export function validateDeck(file: File | null): string | null {
-  if (!file || file.size === 0) return "Upload your pitch deck";
-  const ext = "." + (file.name.split(".").pop() ?? "").toLowerCase();
-  if (!DECK_TYPES.includes(ext)) return "Deck must be a PDF, PPT or PPTX";
-  if (file.size > MAX_DECK_BYTES) return "Deck must be under 10 MB";
-  return null;
 }

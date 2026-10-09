@@ -9,7 +9,7 @@ export type Milestone = {
 
 export const timeline: Milestone[] = [
   { stage: "Registration", title: "Registration Opens", date: "05 August, 2026" },
-  { stage: "Registration", title: "Registration Closes", date: "10 October, 2026", badge: "Extended" },
+  { stage: "Registration", title: "Registration Closes", date: "31 October, 2026", badge: "Extended" },
   { stage: "Selection", title: "Round 1 Shortlisting", date: "31 October, 2026", badge: "Extended" },
   { stage: "Round 2", title: "Online Bootcamp – Round 2", date: "15–29 October, 2026" },
   { stage: "Main Track", title: "Semi-Finalists Announced", date: "12 November, 2026", note: "40 teams", track: "Main Track" },

@@ -140,13 +140,15 @@ export function ThemesForPartners() {
       <ol className="mt-12 space-y-4">
         {themes.map((t, i) => (
           <li key={t.id} className="grid overflow-hidden rounded-card bg-white shadow-card sm:grid-cols-[8rem_1fr_16rem]">
-            <div className={cn("flex items-center justify-between p-5 sm:flex-col sm:items-start", colors[i])}>
-              <span className="font-display text-lg font-bold">0{i + 1}</span>
-              <Image {...t.image} alt="" className="size-14 rounded-lg object-cover" />
+            <div className={cn("grid place-items-center py-4 sm:min-h-32 sm:py-0", colors[i])}>
+              <span className="font-display text-6xl font-bold leading-none sm:text-7xl" aria-label={`Theme ${i + 1}`}>0{i + 1}</span>
             </div>
-            <div className="p-6">
-              <h3 className="font-display text-xl font-bold uppercase">{t.name}</h3>
-              <p className="mt-1 text-sm text-muted">{t.subtitle}</p>
+            <div className="flex items-center gap-4 p-6">
+              <Image {...t.image} alt="" sizes="56px" className="size-14 shrink-0 rounded-lg" />
+              <div>
+                <h3 className="font-display text-xl font-bold uppercase">{t.name}</h3>
+                <p className="mt-1 text-sm text-muted">{t.subtitle}</p>
+              </div>
             </div>
             <div className="border-t border-line p-6 sm:border-l sm:border-t-0">
               <p className="text-xs font-bold uppercase tracking-widest text-brand">Partner fit</p>
@@ -318,7 +320,12 @@ export function BenefitsMatrix() {
 
 export function SponsorContact() {
   const c = sponsorContacts;
-  const assoc = partners.filter((p) => ["DPIIT Startup India", "Bower School of Entrepreneurship", "E-Club", "Balavikas", "GITAM"].includes(p.name));
+  // Brochure p.12 "Past ecosystem associations": DPIIT, Bower, E-Club, Balavikas, GITAM.
+  // DPIIT is no longer on the home-page partner list, so it is referenced directly.
+  const assoc = [
+    { name: "DPIIT Startup India", ...media("/media/logos/dpiit.webp") },
+    ...partners.filter((p) => ["Bower School of Entrepreneurship", "E-Club", "Balavikas", "GITAM"].includes(p.name)),
+  ];
   return (
     <section className="bg-forest py-20 text-white sm:py-28">
       <Container>

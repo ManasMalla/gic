@@ -1,0 +1,41 @@
+# Local full-stack: Postgres + Deno backend + Next.js frontend.
+#   docker compose up --build
+#   site:    http://localhost:8090      backend: http://localhost:8091/healthz
+# Secrets below are DEV-ONLY placeholders. Production secrets live in GCP Secret Manager.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: gic
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gic"]
+      interval: 2s
+      retries: 30
+
+  backend:
+    build: ./backend
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgres://postgres:dev@db:5432/gic
+      GEVENTS_WEBHOOK_SECRETS: dev-webhook-secret
+      INTERNAL_API_TOKEN: dev-internal-token
+      ADMIN_API_TOKEN: dev-admin-token
+    ports: ["8091:8080"]
+
+  frontend:
+    build: .
+    depends_on: [backend]
+    environment:
+      BACKEND_URL: http://backend:8080
+      INTERNAL_API_TOKEN: dev-internal-token
+      SESSION_SECRET: dev-session-secret-at-least-32-characters-long
+      APP_ALLOWED_ORIGINS: http://localhost:8090
+      AUTH_DEV_LOGIN: "true"   # local-only email sign-in, ignored on Cloud Run. Real Google sign-in needs GOOGLE_CLIENT_ID/SECRET.
+      GEVENTS_REGISTRATION_URL: https://gevents.gitam.edu/registration/ODkyMg==
+    ports: ["8090:8080"]
+
+volumes:
+  pgdata:

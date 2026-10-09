@@ -1,19 +1,16 @@
 "use client";
 
-import { useActionState, useRef, useState, startTransition } from "react";
-import { useSearchParams } from "next/navigation";
-import { submitRegistration, type RegisterState } from "@/app/register/actions";
-import { ButtonLink, Button } from "@/components/ui/button";
-import { themes } from "@/content/themes";
+import { useRouter } from "next/navigation";
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import { registerTeam, type RegisterState } from "@/app/register/actions";
+import { Button } from "@/components/ui/button";
 import { tracks } from "@/content/tracks";
-import { site } from "@/content/site";
-import { GENDERS, MAX_DECK_BYTES, validateDeck, validateStep, type FieldErrors, type StepId } from "@/lib/registration/schema";
+import { GENDERS, validateStep, type FieldErrors, type StepId } from "@/lib/registration/schema";
 import { cn } from "@/lib/cn";
-import { FileField, SelectField, TextAreaField, TextField } from "./fields";
+import { SelectField, TextAreaField, TextField } from "./fields";
 
 const steps: { id: StepId; title: string }[] = [
   { id: "team", title: "Team & track" },
-  { id: "idea", title: "Your idea" },
   { id: "members", title: "Team members" },
   { id: "confirm", title: "Review" },
 ];
@@ -21,36 +18,36 @@ const steps: { id: StepId; title: string }[] = [
 const genderOptions = GENDERS.map((g) => ({ value: g, label: g.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase()) }));
 const initial: RegisterState = { status: "idle" };
 
-export function RegistrationWizard() {
-  const params = useSearchParams();
-  const startTrack = params.get("track") === "junior" ? "junior" : params.get("track") === "main" ? "main" : "";
-  const [state, formAction, pending] = useActionState(submitRegistration, initial);
+const owns: Record<StepId, string[]> = {
+  team: ["track", "teamName", "institution", "address", "cityState"],
+  members: ["founder", "cofounder", "member3", "member4", "member5", "member6"],
+  confirm: ["declaration", "remarks"],
+};
+
+/** Step 1 of the journey (after Google sign-in): who is on the team. Payment is next, the idea comes later in the portal. */
+export function TeamWizard({ defaultTrack, email }: { defaultTrack: "junior" | "main" | ""; email: string }) {
+  const router = useRouter();
+  const [state, formAction, pending] = useActionState(registerTeam, initial);
   const [step, setStep] = useState(0);
-  const [track, setTrack] = useState<string>(startTrack);
+  const [track, setTrack] = useState<string>(defaultTrack);
   const [clientErrors, setClientErrors] = useState<FieldErrors>({});
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (state.status === "success" || state.status === "exists") router.push("/register/payment");
+  }, [state, router]);
 
   const errors = { ...(state.status === "error" ? state.errors : {}), ...clientErrors };
   const trackInfo = tracks.find((t) => t.id === track);
 
-  if (state.status === "success") return <Success {...state} />;
-
   function validateCurrent(): FieldErrors {
-    const fd = new FormData(formRef.current!);
-    const found = validateStep(steps[step].id, fd);
-    if (steps[step].id === "idea") {
-      const deckErr = validateDeck(fd.get("pitchDeck") instanceof File ? (fd.get("pitchDeck") as File) : null);
-      if (deckErr) found.pitchDeck = deckErr;
-    }
-    return found;
+    return validateStep(steps[step].id, new FormData(formRef.current!));
   }
-
   function next() {
     const found = validateCurrent();
     setClientErrors(found);
     if (Object.keys(found).length === 0) setStep((s) => Math.min(s + 1, steps.length - 1));
   }
-
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const found = validateCurrent();
@@ -60,13 +57,17 @@ export function RegistrationWizard() {
     startTransition(() => formAction(new FormData(e.currentTarget)));
   }
 
-  // If the server rejects a field from an earlier step, jump back to it.
-  const serverErrorKeys = state.status === "error" ? Object.keys(state.errors) : [];
-  const firstBad = serverErrorKeys.length ? steps.findIndex((s) => serverErrorKeys.some((k) => stepOwns(s.id, k))) : -1;
+  const serverKeys = state.status === "error" ? Object.keys(state.errors) : [];
+  const firstBad = serverKeys.length ? steps.findIndex((s) => serverKeys.some((k) => owns[s.id].includes(k.split(".")[0]))) : -1;
+  const redirecting = state.status === "success" || state.status === "exists";
 
   return (
     <form ref={formRef} onSubmit={onSubmit} noValidate className="mx-auto max-w-3xl">
-      <ol className="mb-10 grid grid-cols-4 gap-2" aria-label="Progress">
+      <p className="mb-6 rounded-xl bg-mint-soft px-4 py-3 text-sm text-muted">
+        Signed in as <strong className="text-ink">{email}</strong>. This account will manage your team&apos;s application.
+      </p>
+
+      <ol className="mb-10 grid grid-cols-3 gap-2" aria-label="Progress">
         {steps.map((s, i) => (
           <li key={s.id} aria-current={i === step ? "step" : undefined}>
             <div className={cn("h-1.5 rounded-full", i <= step ? "bg-brand" : "bg-line")} />
@@ -104,22 +105,9 @@ export function RegistrationWizard() {
         <TextField label={track === "junior" ? "School name" : "College / institution"} name="institution" maxLength={150} required error={errors.institution} />
         <TextAreaField label="Address" name="address" maxLength={200} required error={errors.address} />
         <TextField label="City & state" name="cityState" maxLength={100} required error={errors.cityState} />
-        <SelectField label="Innovation theme" name="theme" required error={errors.theme} options={themes.map((t) => ({ value: t.id, label: t.name }))} hint="Pick the theme closest to your idea." />
       </fieldset>
 
-      <fieldset hidden={step !== 1} className="space-y-5">
-        <legend className="mb-2 font-display text-3xl font-bold">Your idea</legend>
-        <TextField label="Idea / venture title" name="ideaTitle" maxLength={150} required error={errors.ideaTitle} />
-        <TextAreaField label="Problem statement" name="problemStatement" maxLength={300} required error={errors.problemStatement} />
-        <TextAreaField label="Idea summary" name="ideaSummary" maxLength={600} required error={errors.ideaSummary} />
-        <FileField label="Pitch deck" name="pitchDeck" accept=".pdf,.ppt,.pptx" required error={errors.pitchDeck} hint={`PDF, PPT or PPTX, up to ${MAX_DECK_BYTES / 1024 / 1024} MB. `} />
-        <p className="-mt-3 text-xs text-muted">
-          Use the <a className="font-semibold text-brand underline" href="/documents/GIC-2026-Pitch-Deck-Template.pptx">official 2026 template</a>.
-        </p>
-        <TextField label="1-minute pitch video link" name="pitchVideoLink" type="url" inputMode="url" placeholder="https://youtube.com/… or Drive link" maxLength={255} required error={errors.pitchVideoLink} />
-      </fieldset>
-
-      <fieldset hidden={step !== 2} className="space-y-8">
+      <fieldset hidden={step !== 1} className="space-y-8">
         <legend className="mb-2 font-display text-3xl font-bold">Team members</legend>
         <p className="text-muted">{track === "main" ? "2–6" : "2–4"} members. Only the Lead and Co-lead are invited to the Grand Finale; everyone receives a certificate.</p>
         <Member prefix="founder" title="Lead (founder)" errors={errors} required />
@@ -134,14 +122,16 @@ export function RegistrationWizard() {
         )}
       </fieldset>
 
-      <fieldset hidden={step !== 3} className="space-y-6">
+      <fieldset hidden={step !== 2} className="space-y-6">
         <legend className="mb-2 font-display text-3xl font-bold">Review &amp; continue</legend>
         <div className="rounded-card bg-mint-soft p-6">
           <p className="text-xs font-bold uppercase tracking-widest text-brand">Registration fee</p>
           <p className="mt-1 font-display text-4xl font-bold">{trackInfo ? `₹${trackInfo.fee}` : "—"} <span className="text-base font-normal text-muted">per team</span></p>
-          <p className="mt-3 text-sm text-muted">
-            After you submit, we save your application and send you to <strong>GITAM GEvents</strong> to pay the fee. Keep your application reference handy.
-          </p>
+          <ol className="mt-4 list-inside list-decimal space-y-1 text-sm text-muted">
+            <li><strong className="text-ink">Save your team</strong> (this step)</li>
+            <li>Pay the fee on <strong className="text-ink">GITAM GEvents</strong></li>
+            <li>Once payment is confirmed, open the <strong className="text-ink">portal</strong> to choose your theme and submit your idea — you can edit it until the deadline.</li>
+          </ol>
         </div>
         <TextAreaField label="Remarks (optional)" name="remarks" maxLength={100} rows={2} error={errors.remarks} />
         <label className="flex items-start gap-3 text-sm">
@@ -156,22 +146,11 @@ export function RegistrationWizard() {
         {step < steps.length - 1 ? (
           <Button type="button" variant="brand" onClick={next}>Continue →</Button>
         ) : (
-          <Button type="submit" disabled={pending}>{pending ? "Saving…" : "Submit & continue to payment"}</Button>
+          <Button type="submit" disabled={pending || redirecting}>{pending || redirecting ? "Saving…" : "Save team & continue to payment"}</Button>
         )}
       </div>
     </form>
   );
-}
-
-function stepOwns(step: StepId, key: string) {
-  const root = key.split(".")[0];
-  const map: Record<StepId, string[]> = {
-    team: ["track", "teamName", "institution", "address", "cityState", "theme"],
-    idea: ["ideaTitle", "problemStatement", "ideaSummary", "pitchVideoLink", "pitchDeck"],
-    members: ["founder", "cofounder", "member3", "member4", "member5", "member6"],
-    confirm: ["declaration", "remarks"],
-  };
-  return map[step].includes(root);
 }
 
 function Member({ prefix, title, errors, required }: { prefix: string; title: string; errors: FieldErrors; required?: boolean }) {
@@ -185,22 +164,6 @@ function Member({ prefix, title, errors, required }: { prefix: string; title: st
         <TextField label="Email" name={f("email")} type="email" required={required} maxLength={100} error={errors[f("email")]} />
         <TextField label="Mobile" name={f("phone")} type="tel" inputMode="numeric" required={required} maxLength={15} error={errors[f("phone")]} />
         <SelectField label="Gender" name={f("gender")} required={required} error={errors[f("gender")]} options={genderOptions} />
-      </div>
-    </div>
-  );
-}
-
-function Success({ reference, fee, paymentUrl }: Extract<RegisterState, { status: "success" }>) {
-  return (
-    <div className="mx-auto max-w-2xl rounded-[1.75rem] bg-forest p-8 text-center text-white sm:p-12">
-      <p className="mx-auto grid size-14 place-items-center rounded-full bg-gold text-2xl text-ink" aria-hidden>✓</p>
-      <h2 className="mt-5 font-display text-4xl font-bold">Application saved</h2>
-      <p className="mt-3 text-white/75">One last step — pay the registration fee of <strong className="text-white">₹{fee}</strong> on GITAM GEvents to confirm your team.</p>
-      <p className="mt-8 text-xs font-bold uppercase tracking-widest text-mint">Your application reference</p>
-      <p className="mt-1 font-mono text-2xl font-bold tracking-wider text-gold">{reference}</p>
-      <p className="mt-2 text-sm text-white/60">Quote this on GEvents and in any email to {site.contact.email}.</p>
-      <div className="mt-8">
-        <ButtonLink href={paymentUrl} external>Continue to payment ↗</ButtonLink>
       </div>
     </div>
   );

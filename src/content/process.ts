@@ -31,7 +31,7 @@ export const process: ProcessGroup[] = [
         body: [
           "All teams submit a 1-minute video pitch and a pitch deck online.",
           "Guidelines for the video and deck are shared along with the registration form.",
-          "Registration window: 5 August – 10 October 2026.",
+          "Registration window: 5 August – 31 October 2026.",
         ],
       },
     ],

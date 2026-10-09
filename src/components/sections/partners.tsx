@@ -11,11 +11,24 @@ export function Partners() {
         description="Collaborating with organisations that support innovation, entrepreneurship and student growth."
       />
       <ul className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {partners.map((p) => (
-          <li key={p.name} className="grid aspect-[3/2] place-items-center rounded-2xl bg-white p-5 shadow-card">
-            <Image src={p.src} width={p.width} height={p.height} alt={p.name} sizes="(min-width:1024px) 15vw, 40vw" className="max-h-full w-auto object-contain" />
-          </li>
-        ))}
+        {partners.map((p) => {
+          const tweak = p.maxH || p.shiftX ? { ...(p.maxH ? { maxHeight: p.maxH } : {}), ...(p.shiftX ? { transform: `translateX(${p.shiftX}%)` } : {}) } : undefined;
+          const logo = <Image src={p.src} width={p.width} height={p.height} alt={p.name} sizes="(min-width:1024px) 15vw, 40vw" style={tweak} className="max-h-[78%] w-auto object-contain" />;
+          return (
+            <li key={p.name} className="aspect-[3/2] rounded-2xl bg-white shadow-card">
+              {p.href ? (
+                <a
+                  href={p.href} target="_blank" rel="noopener noreferrer" aria-label={`${p.name} (opens in a new tab)`}
+                  className="grid size-full place-items-center rounded-2xl p-5 transition-transform hover:-translate-y-0.5 hover:shadow-lg"
+                >
+                  {logo}
+                </a>
+              ) : (
+                <div className="grid size-full place-items-center p-5">{logo}</div>
+              )}
+            </li>
+          );
+        })}
       </ul>
 
       <div className="mt-20">

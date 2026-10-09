@@ -1,32 +1,35 @@
 import { media } from "@/lib/media";
 
 // NOTE: names are inferred from the original logo filenames — please review.
-const logo = (file: string, name: string) => ({ name, ...media(`/media/logos/${file}.webp`) });
+export type Partner = {
+  name: string; src: string; width: number; height: number;
+  href?: string;   // tile links out to the partner's site (new tab)
+  maxH?: number;   // px cap on this logo's height (use for tall marks that crowd the tile)
+  shiftX?: number; // optical centring: % of the logo's own width to move right (+) / left (-)
+};
 
-export const partners = [
+const logo = (file: string, name: string, opts: Pick<Partner, "href" | "maxH" | "shiftX"> = {}): Partner => ({ name, ...media(`/media/logos/${file}.webp`), ...opts });
+
+export const partners: Partner[] = [
   logo("gitam-logos-header", "GITAM"),
   logo("bower", "Bower School of Entrepreneurship"),
   logo("gitamvdc", "GITAM Venture Development Centre"),
   logo("gitamit", "GITAM i-TBI"),
   logo("e-club", "E-Club"),
-  logo("dpiit", "DPIIT Startup India"),
+  logo("gtec", "G-TEC (DST GITAM Technology Enabling Centre)"),
   logo("wadwani", "Wadhwani Foundation"),
   logo("openct-logo", "OpenCT"),
-  logo("science-city", "Science City"),
   logo("balavikas", "Balavikas"),
-  logo("yo-vizag", "YO Vizag"),
-  logo("github", "GitHub"),
   logo("IHH-logo", "Impact Hub Hyderabad"),
-  logo("TIE", "TiE"),
-  logo("vizag-startups", "Vizag Startups"),
-  logo("grammena", "Grammena"),
   logo("ALIF-logo", "ALIF"),
   logo("d2d_logo", "D2D"),
   logo("RTIH-logo", "RTIH"),
   logo("hub", "Hub"),
-] as const;
+  // The robot "B" is visually heavy on the left, so it is nudged right to look centred, and sized down a little.
+  logo("brainybotz-official", "BrainyBotz", { href: "https://brainybotz.in", maxH: 68, shiftX: 7 }),
+];
 
-export const previousPartners = [
+export const previousPartners: Partner[] = [
   logo("ctrls", "CtrlS"),
   logo("grayquest", "GrayQuest"),
   logo("thinking-forks", "Thinking Forks"),
@@ -49,4 +52,4 @@ export const previousPartners = [
   logo("headstart", "Headstart"),
   logo("karnataka", "Government of Karnataka"),
   logo("img_2", "Partner"),
-] as const;
+];

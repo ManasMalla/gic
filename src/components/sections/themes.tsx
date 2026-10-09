@@ -33,7 +33,7 @@ export function Themes() {
               onClick={() => setActive(i)}
               className="group flex h-full w-full items-center gap-5 rounded-card bg-white p-5 text-left shadow-card transition-transform hover:-translate-y-1"
             >
-              <Image {...t.image} alt="" sizes="80px" className="h-[100px] w-20 shrink-0 rounded-xl" />
+              <Image {...t.image} alt="" sizes="96px" className="size-24 shrink-0 rounded-2xl ring-1 ring-black/5" />
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-brand">Theme 0{i + 1}</p>
                 <h3 className="mt-1 font-display text-xl font-bold leading-tight">{t.name}</h3>
@@ -53,9 +53,9 @@ export function Themes() {
         className="m-auto w-[min(92vw,56rem)] overflow-hidden rounded-[1.75rem] p-0 backdrop:bg-ink/70 backdrop:backdrop-blur-sm"
       >
         {theme && (
-          <div className="grid md:grid-cols-[14rem_1fr]">
+          <div className="grid md:grid-cols-[16rem_1fr]">
             <div className="grid place-items-center bg-forest p-8">
-              <Image {...theme.image} alt="" sizes="128px" className="h-40 w-32 rounded-2xl" />
+              <Image {...theme.image} alt="" sizes="176px" className="size-44 rounded-2xl" />
             </div>
             <div className="p-8 sm:p-10">
               <p className="text-xs font-semibold uppercase tracking-widest text-brand">Innovation theme</p>

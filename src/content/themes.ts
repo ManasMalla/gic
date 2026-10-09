@@ -23,7 +23,7 @@ export const themes = [
     id: "deeptech-manufacturing",
     name: "DeepTech & Manufacturing",
     subtitle: "Smart Manufacturing & Industry 4.0",
-    image: media("/media/themes/deetech.webp"),
+    image: media("/media/themes/deeptech.webp"),
     description:
       "This theme centers on the advanced technology reshaping industry. Focus areas include robotics, Internet of Things (IoT) applications, edge computing, smart factory systems, automation solutions for MSMEs, supply chain technology innovations, and ideas addressing the evolving future of work in a tech-driven economy.",
     partnerFit: "Manufacturing · engineering · enterprise tech",
@@ -41,7 +41,7 @@ export const themes = [
     id: "d2c-consumer",
     name: "D2C & Consumer Brands",
     subtitle: "Creator Economy",
-    image: media("/media/themes/D2C.webp"),
+    image: media("/media/themes/d2c.webp"),
     description:
       "This theme focuses on direct-to-consumer innovation and brand building. Focus areas include digital-first brand models, fashion, food and beverage products, personal care items, wellness brands, influencer-led ventures, community commerce approaches, subscription-based business models, and brands leveraging ONDC (Open Network for Digital Commerce) for wider market reach.",
     partnerFit: "FMCG · retail · e-commerce · logistics",
