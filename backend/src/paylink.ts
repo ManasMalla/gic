@@ -3,7 +3,8 @@
 // (src/lib/paylink.ts, Node) and documented for CATs (docs/gevents-payment-webhook.md, PHP example).
 //
 //   token  = "v1." + base64url(iv[12]) + "." + base64url(ciphertext || tag[16])
-//   plaintext = JSON {"e": "<email>", "t": "junior"|"main", "iat": <unix seconds>}
+//   plaintext = JSON {"e": "<email>", "t": "junior"|"main", "iat": <unix seconds>,
+//                     optional form pre-fill: "n": name, "m": mobile, "o": organization, "g": gender}
 //   AAD    = "gic-pay-v1"      key = 32 random bytes, shared secret (standard base64 in env PAYMENT_LINK_KEY)
 import type { Track } from "./fees.ts";
 
@@ -23,11 +24,17 @@ function importKey(keyB64: string, usage: KeyUsage) {
   return crypto.subtle.importKey("raw", raw, "AES-GCM", false, [usage]);
 }
 
-export type PaymentLink = { email: string; track: Track; iat: number };
+/** Optional details so GEvents can pre-fill its registration form. Not used for matching. */
+export type PayerProfile = { name?: string; mobile?: string; organization?: string; gender?: string };
+export type PaymentLink = { email: string; track: Track; iat: number } & PayerProfile;
 
-export async function encryptPaymentLink(p: { email: string; track: Track }, keyB64: string, nowSec = Math.floor(Date.now() / 1000)): Promise<string> {
+export async function encryptPaymentLink(p: { email: string; track: Track } & PayerProfile, keyB64: string, nowSec = Math.floor(Date.now() / 1000)): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const plain = enc.encode(JSON.stringify({ e: p.email.trim().toLowerCase(), t: p.track, iat: nowSec }));
+  const plain = enc.encode(JSON.stringify({
+    e: p.email.trim().toLowerCase(), t: p.track, iat: nowSec,
+    ...(p.name ? { n: p.name } : {}), ...(p.mobile ? { m: p.mobile } : {}),
+    ...(p.organization ? { o: p.organization } : {}), ...(p.gender ? { g: p.gender } : {}),
+  }));
   const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: AAD }, await importKey(keyB64, "encrypt"), plain));
   return `v1.${toB64Url(iv)}.${toB64Url(ct)}`;
 }
@@ -47,11 +54,16 @@ export async function decryptPaymentLink(
       await importKey(keyB64, "decrypt"),
       fromB64Url(ct),
     );
-    const o = JSON.parse(dec.decode(plain)) as { e?: unknown; t?: unknown; iat?: unknown };
+    const o = JSON.parse(dec.decode(plain)) as { e?: unknown; t?: unknown; iat?: unknown; n?: unknown; m?: unknown; o?: unknown; g?: unknown };
     if (typeof o.e !== "string" || (o.t !== "junior" && o.t !== "main") || typeof o.iat !== "number") return null;
     const now = opts.nowSec ?? Math.floor(Date.now() / 1000);
     if (opts.maxAgeSeconds && now - o.iat > opts.maxAgeSeconds) return null;
-    return { email: o.e.toLowerCase(), track: o.t, iat: o.iat };
+    const str = (v: unknown) => (typeof v === "string" && v ? v : undefined);
+    return {
+      email: o.e.toLowerCase(), track: o.t, iat: o.iat,
+      ...(str(o.n) ? { name: str(o.n) } : {}), ...(str(o.m) ? { mobile: str(o.m) } : {}),
+      ...(str(o.o) ? { organization: str(o.o) } : {}), ...(str(o.g) ? { gender: str(o.g) } : {}),
+    };
   } catch {
     return null;
   }

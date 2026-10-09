@@ -44,11 +44,27 @@ GEvents must:
 
 ```
 data      = "v1." + base64url(iv, 12 bytes) + "." + base64url(ciphertext || authTag, tag = last 16 bytes)
-plaintext = JSON {"e": "<founder email, lower-case>", "t": "junior" | "main", "iat": <unix seconds>}
+plaintext = JSON {"e": "<founder email, lower-case>", "t": "junior" | "main", "iat": <unix seconds>,
+            "n": "<name>", "m": "<mobile>", "o": "<organization>", "g": "<gender>"}      (n, m, o, g are optional)
 AAD       = "gic-pay-v1"
 key       = 32 random bytes, shared with you as standard base64
 ```
 Tokens are valid for 14 days from `iat`. Every token is different (random IV), even for the same team.
+
+**Pre-fill fields** (all about the team lead; optional, use only what you can map):
+
+| Token key | Meaning | GEvents form field | Notes |
+|---|---|---|---|
+| `e` | founder email (lower-case) | `email_id` | also what we match the payment on |
+| `n` | name | `name` | we trim it to 50 characters (your field limit) |
+| `m` | mobile | `mobile` | digits only, 10–15 |
+| `o` | organization (school / college) | `organization` | we trim it to 100 characters (your field limit) |
+| `g` | gender | `gender` | we send `male`, `female`, `other` or `prefer-not-to-say`. Map to your options: `male`→`M`, `female`→`F`, `other`/`prefer-not-to-say`→`Others` (or leave blank) |
+| `t` | track | `membership_type` | `junior` / `main` |
+
+Your form only accepts letters and spaces in `name` and `organization`, so characters such as `.`, `'`, `-`, digits or brackets
+in our values will be dropped by your input filter. We do not rewrite them on our side. Tokens made before this field list
+was added contain only `e`, `t` and `iat`; treat the other keys as optional.
 
 **PHP example** (PHP ≥ 7.1; GEvents runs PHP 7.4):
 

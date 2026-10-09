@@ -174,6 +174,7 @@ Deno.test({
 
       const before = await (await me(email)).json();
       assertEquals([before.status, before.canEditIdea, before.ideaComplete], ["awaiting_payment", false, false]);
+      assertEquals([before.founder.name, before.founder.email, before.founder.phone, before.founder.gender], ["Asha Test", email, "9876543210", "female"]);
       assertEquals((await saveIdea(email, ideaForm(idea()))).status, 403); // payment_required
 
       await webhook({ reference: r });

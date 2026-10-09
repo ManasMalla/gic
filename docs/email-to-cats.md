@@ -45,7 +45,7 @@ Please send a server-to-server HTTPS `POST` to us for each payment outcome.
 
 1. **Read the extra `data` URL parameter** and keep it with the registration/transaction, e.g.
    `https://gevents.gitam.edu/registration/ODkyMg==?data=v1.I4-CR28FM3IiDmnP.-JBu8vmhqAEiVYCJWXPv…`
-   It is AES-256-GCM encrypted (founder email + track). **Echo it back unchanged** as `registration.data` in the webhook (strongly preferred).
+   It is AES-256-GCM encrypted: founder email + track, plus optional pre-fill details for the team lead (name, mobile, organization, gender; the field table is in the attached spec, section 2.1). **Echo it back unchanged** as `registration.data` in the webhook (strongly preferred).
 2. **Send the founder's email back as `payer.email`.** This is what we match on, so it must be the team lead's email. If your form lets the payer type a different one, please also keep the original via the echoed `data`.
 3. *(Optional)* **Pre-fill the founder email and lock the track/fee** by decrypting `data` with a shared key (we send the key through a secure channel, never by email). The format and a ready-to-use **PHP snippet** are in the attached specification (section 2.1).
 4. **Return the user to us after payment** (nice to have): redirect to `https://gic.gitam.edu/register/payment-status` on success or failure (the page works out who they are from their sign-in).

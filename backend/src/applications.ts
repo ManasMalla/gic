@@ -77,6 +77,9 @@ export async function getMyApplication(ownerEmail: string): Promise<Response> {
     team: { teamName: a.team_name, institution: a.institution },
     // Used by the website to build the (encrypted) GEvents payment link.
     founderEmail: (a.data?.founder?.email as string | undefined) ?? null,
+    founder: a.data?.founder
+      ? { name: a.data.founder.name ?? null, email: a.data.founder.email ?? null, phone: a.data.founder.phone ?? null, gender: a.data.founder.gender ?? null }
+      : null,
     lastPayment: last ? { type: last.event_type, at: last.occurred_at } : null,
     idea,
     deck: deck ? { filename: deck.filename, size: deck.size } : null,

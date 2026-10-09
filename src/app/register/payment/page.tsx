@@ -53,7 +53,14 @@ async function Body() {
       </dl>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <ButtonLink href={paymentUrl({ email: app.founderEmail ?? user.email, track: app.track })} external>Pay on GEvents ↗</ButtonLink>
+        <ButtonLink href={paymentUrl({
+            email: app.founderEmail ?? user.email,
+            track: app.track,
+            name: app.founder?.name ?? undefined,
+            mobile: app.founder?.phone ?? undefined,
+            organization: app.team.institution,
+            gender: app.founder?.gender ?? undefined,
+          })} external>Pay on GEvents ↗</ButtonLink>
         <ButtonLink href="/register/payment-status" variant="ghost">I&apos;ve paid — check status</ButtonLink>
       </div>
       <p className="mt-6 text-sm text-muted">
