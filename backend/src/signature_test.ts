@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { signForTest, verifySignature } from "./signature.ts";
+import { diagnoseSignature, signForTest, verifySignature } from "./signature.ts";
 
 const secret = "s3cret";
 const body = JSON.stringify({ hello: "world" });
@@ -26,4 +26,25 @@ Deno.test("rejects tampered body, wrong secret, missing headers, stale timestamp
   const oldTs = String(Math.floor(now / 1000) - 301);
   const oldSig = "sha256=" + await signForTest(secret, `${oldTs}.${body}`);
   assertEquals(await verifySignature({ ...base, timestamp: oldTs, signature: oldSig }), "stale");
+});
+
+Deno.test("diagnoseSignature names the mistake that WOULD have produced the received signature", async () => {
+  const mk = async (msg: string) => "sha256=" + await signForTest(secret, msg);
+  const common = { rawBody: body, timestamp: ts, secrets: [secret] };
+  assertEquals((await diagnoseSignature({ ...common, signature: await mk(body) })).join("|").includes("body only"), true);
+  assertEquals((await diagnoseSignature({ ...common, signature: await mk(ts + body) })).join("|").includes("no dot"), true);
+  assertEquals((await diagnoseSignature({ ...common, signature: await mk(`${ts}.${body}\n`) })).join("|").includes("trailing newline"), true);
+  // the PHP json_encode "\/" escaping mistake
+  const slashBody = JSON.stringify({ url: "https://x.y/z" });
+  const phpSig = "sha256=" + await signForTest(secret, `${ts}.${slashBody.replaceAll("/", "\\/")}`);
+  assertEquals((await diagnoseSignature({ rawBody: slashBody, timestamp: ts, signature: phpSig, secrets: [secret] })).join("|").includes("PHP json_encode"), true);
+  // a secret with a stray newline on the sender's side
+  const strayNl = "sha256=" + await signForTest(secret + "\n", `${ts}.${body}`);
+  assertEquals((await diagnoseSignature({ ...common, signature: strayNl })).join("|").includes("stray whitespace"), true);
+});
+
+Deno.test("diagnoseSignature returns nothing for a different secret (and never leaks it)", async () => {
+  const sig = "sha256=" + await signForTest("some-other-secret", `${ts}.${body}`);
+  assertEquals(await diagnoseSignature({ rawBody: body, timestamp: ts, signature: sig, secrets: [secret] }), []);
+  assertEquals(await diagnoseSignature({ rawBody: body, timestamp: null, signature: null, secrets: [secret] }), []);
 });

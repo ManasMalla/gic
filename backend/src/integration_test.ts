@@ -309,6 +309,50 @@ Deno.test({
       assert(Array.isArray(checks[1].hints), "failed checks include hints");
     });
 
+    // ---- Shapes GEvents actually sent in its first live test ----
+    await t.step("GEvents' real test payload (track \"Test\", transaction_id null, ₹1) is accepted and stored, not rejected as malformed", async () => {
+      const body = JSON.stringify({
+        event_id: `evt_real_${tag}`, event_type: "payment.succeeded", api_version: "1", occurred_at: "2026-10-09T15:21:13+05:30", reference: null,
+        registration: { gevents_registration_id: "General2026200400002", event_id: "GE20240413", track: "Test" },
+        payment: { status: "succeeded", transaction_id: null, gateway: "paytm", gateway_order_id: `437796${tag}`, gateway_payment_id: null, amount: 100, currency: "INR", receipt_number: "General2026200400002" },
+        payer: { name: "Test Payer", email: `gitam-tester-${tag}@gitam.edu`, phone: "9000000000", registration_number: "6527" }, refund: null,
+      });
+      const ts = String(Math.floor(Date.now() / 1000));
+      const sig = "sha256=" + await signForTest(SECRET, `${ts}.${body}`);
+      const res = await run("/api/webhooks/gevents/payment", { method: "POST", body, headers: { "x-gevents-timestamp": ts, "x-gevents-signature": sig } });
+      const out = await res.json();
+      assertEquals([res.status, out.match, out.flags], [200, "unmatched", ["no_candidate"]]);
+      // the order id was used as the transaction id, so a later refund can follow it
+      const [row] = await sql`select transaction_id from payments where event_id = ${`evt_real_${tag}`}`;
+      assertEquals(row.transaction_id, `437796${tag}`);
+    });
+
+    await t.step("a wrongly-signed call is logged with a one-line `message` and a diagnosis of the mistake", async () => {
+      const logs: string[] = [];
+      const orig = { log: console.log, warn: console.warn };
+      console.log = (...a: unknown[]) => void logs.push(a.join(" "));
+      console.warn = (...a: unknown[]) => void logs.push(a.join(" "));
+      let status = 0;
+      try {
+        const body = JSON.stringify({ event_id: `evt_diag_${tag}`, event_type: "payment.succeeded", occurred_at: "2026-10-09T15:00:00+05:30", payment: { amount: 49900, currency: "INR" } });
+        const ts = String(Math.floor(Date.now() / 1000));
+        const sig = "sha256=" + await signForTest(SECRET, body); // the classic mistake: no timestamp in the signed string
+        status = (await run("/api/webhooks/gevents/payment", { method: "POST", body, headers: { "x-gevents-timestamp": ts, "x-gevents-signature": sig } })).status;
+      } finally {
+        console.log = orig.log;
+        console.warn = orig.warn;
+      }
+      assertEquals(status, 401);
+      const parsed = logs.map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+      const hit = parsed.find((l) => l.msg === "webhook hit");
+      assert(hit.message.startsWith("webhook hit POST /api/webhooks/gevents/payment") && hit.message.includes(`evt_diag_${tag}`), "payload is on the collapsed summary line");
+      assertEquals(hit.payload.event_id, `evt_diag_${tag}`); // also available parsed
+      const check = parsed.find((l) => l.msg === "webhook signature check");
+      assertEquals(check.result, "invalid");
+      assert(check.message.includes("signed the body only"), check.message);
+      assert(check.diagnosis.some((d: string) => d.includes("body only")));
+    });
+
     await sql.end();
   },
 });

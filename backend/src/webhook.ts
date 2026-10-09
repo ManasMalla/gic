@@ -6,7 +6,13 @@ import { type AppRow, decide, type MatchInput } from "./matcher.ts";
 import { decryptPaymentLink } from "./paylink.ts";
 import { normalizeReference } from "./reference.ts";
 import { type WebhookPayload, webhookSchema } from "./schema.ts";
-import { verifySignature } from "./signature.ts";
+import { diagnoseSignature, verifySignature } from "./signature.ts";
+
+/** "junior"/"main" in any case; anything else (e.g. GEvents' "Test") is treated as unknown rather than rejected. */
+const normTrack = (t?: string | null) => {
+  const v = t?.trim().toLowerCase();
+  return v === "junior" || v === "main" ? v : null;
+};
 
 // deno-lint-ignore no-explicit-any
 const toApp = (r: any): AppRow => ({ id: r.id, reference: r.reference, track: r.track, status: r.status, amountDue: r.amount_due });
@@ -24,8 +30,12 @@ export async function handleGeventsWebhook(req: Request): Promise<Response> {
 
   // Debug log #1: everything that hit us, BEFORE verification, so rejected calls can be diagnosed too.
   try {
+    let payload: unknown = undefined;
+    try { payload = JSON.parse(rawBody); } catch { /* not JSON: the raw body below still shows what arrived */ }
     console.log(JSON.stringify({
       severity: "INFO",
+      // `message` is what Cloud Logging shows on the collapsed line, so the call is readable without expanding the entry.
+      message: `webhook hit ${req.method} ${new URL(req.url).pathname} | ts=${timestamp} sig=${signature} | body=${truncate(rawBody, 2000)}`,
       msg: "webhook hit",
       method: req.method,
       path: new URL(req.url).pathname,
@@ -37,7 +47,8 @@ export async function handleGeventsWebhook(req: Request): Promise<Response> {
       },
       bodyBytes: new TextEncoder().encode(rawBody).length,
       bodySha256: await sha256Hex(rawBody),
-      ...(config.webhookDebugLog ? { headers: redactHeaders(req.headers), body: truncate(rawBody) } : {}),
+      // `body` = the exact raw string received (what the signature covers); `payload` = the same, parsed, for easy reading/filtering.
+      ...(config.webhookDebugLog ? { headers: redactHeaders(req.headers), body: truncate(rawBody), ...(payload !== undefined ? { payload } : {}) } : {}),
     }));
   } catch (e) {
     console.error(JSON.stringify({ msg: "webhook debug log failed", error: String(e) }));
@@ -50,12 +61,17 @@ export async function handleGeventsWebhook(req: Request): Promise<Response> {
     secrets: config.webhookSecrets,
     windowSeconds: config.replayWindowSeconds,
   });
+  // On failure, also say which common signing mistakes WOULD have produced the signature we received.
+  const diagnosis = sig === "ok" ? [] : await diagnoseSignature({ rawBody, timestamp, signature, secrets: config.webhookSecrets });
   console.log(JSON.stringify({
     severity: sig === "ok" ? "INFO" : "WARNING",
+    message: sig === "ok"
+      ? "webhook signature check: ok"
+      : `webhook signature check: ${sig.toUpperCase()} | ${diagnosis.length ? "matches if GEvents " + diagnosis.join(" OR ") : "no known variant matches: GEvents is most likely using a DIFFERENT SECRET (or hashing different bytes)"}`,
     msg: "webhook signature check",
     result: sig,
     secretsConfigured: config.webhookSecrets.length,
-    ...(sig === "ok" ? {} : { hints: signatureHints(timestamp, signature, nowSec) }),
+    ...(sig === "ok" ? {} : { hints: signatureHints(timestamp, signature, nowSec), diagnosis }),
   }));
   if (sig !== "ok") return json({ error: `signature_${sig}` }, 401);
 
@@ -69,7 +85,7 @@ export async function handleGeventsWebhook(req: Request): Promise<Response> {
   const parsed = webhookSchema.safeParse(body);
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message }));
-    console.warn(JSON.stringify({ severity: "WARNING", msg: "webhook payload rejected", issues }));
+    console.warn(JSON.stringify({ severity: "WARNING", message: `webhook payload rejected: ${issues.map((i) => `${i.path}: ${i.message}`).join("; ")}`, msg: "webhook payload rejected", issues }));
     return json({ error: "invalid_payload", issues }, 400);
   }
   const p: WebhookPayload = parsed.data;
@@ -80,6 +96,8 @@ export async function handleGeventsWebhook(req: Request): Promise<Response> {
       values (${p.event_id}, ${p.event_type}, ${tx.json(body as never)}) on conflict (event_id) do nothing returning event_id`;
     if (inserted.length === 0) return { duplicate: true as const };
 
+    // GEvents may omit transaction_id; fall back through the other ids it sends so refunds can still follow the payment.
+    const txnId = p.payment.transaction_id || p.payment.gateway_payment_id || p.payment.gateway_order_id || p.payment.receipt_number || p.event_id;
     const referenceProvided = typeof p.reference === "string" && p.reference.trim() !== "";
     const reference = normalizeReference(p.reference);
 
@@ -99,7 +117,7 @@ export async function handleGeventsWebhook(req: Request): Promise<Response> {
       : [];
     const [txnRow] = await tx`
       select a.* from payments pm join applications a on a.id = pm.application_id
-      where pm.transaction_id = ${p.payment.transaction_id} order by pm.created_at limit 1 for update of a`;
+      where pm.transaction_id = ${txnId} order by pm.created_at limit 1 for update of a`;
     const founderRows = emails.length
       ? await tx`select distinct a.* from applications a join application_contacts c on c.application_id = a.id
                  where c.role = 'founder' and c.email = any(${emails})`
@@ -113,7 +131,7 @@ export async function handleGeventsWebhook(req: Request): Promise<Response> {
       eventType: p.event_type,
       referenceProvided,
       reference,
-      track: p.registration?.track ?? link?.track ?? null,
+      track: normTrack(p.registration?.track) ?? link?.track ?? null,
       amount: p.payment.amount,
       byTransaction: txnRow ? toApp(txnRow) : null,
       byReference: refRow ? toApp(refRow) : null,
@@ -123,7 +141,7 @@ export async function handleGeventsWebhook(req: Request): Promise<Response> {
     const result = decide(input);
 
     await tx`insert into payments (event_id, event_type, transaction_id, application_id, match_status, match_method, flags, amount, currency, occurred_at)
-      values (${p.event_id}, ${p.event_type}, ${p.payment.transaction_id}, ${result.application?.id ?? null}, ${result.status},
+      values (${p.event_id}, ${p.event_type}, ${txnId}, ${result.application?.id ?? null}, ${result.status},
               ${result.method}, ${result.flags}, ${p.payment.amount}, ${p.payment.currency}, ${p.occurred_at})`;
 
     // Only a clean match changes an application's state.
@@ -137,6 +155,6 @@ export async function handleGeventsWebhook(req: Request): Promise<Response> {
     return { duplicate: false as const, match: result.status, method: result.method, flags: result.flags, reference: result.application?.reference ?? null };
   });
 
-  console.log(JSON.stringify({ severity: "INFO", msg: "webhook processed", event_id: p.event_id, type: p.event_type, ...outcome }));
+  console.log(JSON.stringify({ severity: "INFO", message: `webhook processed: ${p.event_type} -> ${"duplicate" in outcome && outcome.duplicate ? "duplicate (ignored)" : `${(outcome as {match?: string}).match}${(outcome as {method?: string | null}).method ? " via " + (outcome as {method?: string | null}).method : ""}`}`, msg: "webhook processed", event_id: p.event_id, type: p.event_type, ...outcome }));
   return json({ status: "ok", ...outcome }, 200);
 }
