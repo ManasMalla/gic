@@ -4,6 +4,7 @@ import { route } from "./main.ts";
 import { config } from "./config.ts";
 import { migrate, sql } from "./db.ts";
 import { signForTest } from "./signature.ts";
+import { encryptPaymentLink } from "./paylink.ts";
 
 const SECRET = Deno.env.get("GEVENTS_WEBHOOK_SECRETS")!.split(",")[0];
 const INTERNAL = { "x-internal-token": Deno.env.get("INTERNAL_API_TOKEN")! };
@@ -228,6 +229,84 @@ Deno.test({
       const r = await create("junior", email);
       const { out } = await webhook({ payer: { email: email.toUpperCase() } });
       assertEquals([out.match, out.reference], ["matched", r]);
+    });
+
+    // ---- Matching by founder email (no reference is sent any more) + encrypted payment-link token + debug logging ----
+    const mkApp = async (owner: string, founder: string, co: string, track: "junior" | "main" = "junior") => {
+      const data = { ...teamData(track, founder), founder: person("Lead", founder), cofounder: person("Co", co) };
+      const res = await run("/api/applications", { method: "POST", headers: { ...as(owner), "content-type": "application/json" }, body: JSON.stringify(data) });
+      assertEquals(res.status, 201);
+      return (await res.json()).reference as string;
+    };
+
+    await t.step("no reference at all: the FOUNDER's email on the payment matches the application", async () => {
+      const founder = `founder-${tag}@example.com`;
+      const r = await mkApp(`owner-f-${tag}@gmail.com`, founder, `cof-${tag}@example.com`);
+      const { out } = await webhook({ payer: { email: founder.toUpperCase() } });
+      assertEquals([out.match, out.method, out.reference, out.flags], ["matched", "founder_email", r, []]);
+      assertEquals(await status(r), "paid");
+    });
+
+    await t.step("the founder wins over a teammate who shares the email on ANOTHER application", async () => {
+      const x = `shared-${tag}@example.com`;
+      const a = await mkApp(`own-a-${tag}@gmail.com`, x, `ca-${tag}@example.com`);
+      const b = await mkApp(`own-b-${tag}@gmail.com`, `fb-${tag}@example.com`, x); // x is only a co-lead here
+      const { out } = await webhook({ payer: { email: x } });
+      assertEquals([out.match, out.method, out.reference], ["matched", "founder_email", a]);
+      assertEquals(await status(b), "awaiting_payment");
+    });
+
+    await t.step("two applications with the same founder email: needs review, nothing is marked paid", async () => {
+      const x = `dupfounder-${tag}@example.com`;
+      const a = await mkApp(`dup-a-${tag}@gmail.com`, x, `da-${tag}@example.com`);
+      const b = await mkApp(`dup-b-${tag}@gmail.com`, x, `db-${tag}@example.com`);
+      const { out } = await webhook({ payer: { email: x } });
+      assertEquals([out.match, out.flags, out.reference], ["needs_review", ["ambiguous_email"], null]);
+      assertEquals([await status(a), await status(b)], ["awaiting_payment", "awaiting_payment"]);
+    });
+
+    await t.step("the echoed ENCRYPTED payment-link token alone is enough (even with no payer email)", async () => {
+      const founder = `tokfounder-${tag}@example.com`;
+      const r = await mkApp(`own-t-${tag}@gmail.com`, founder, `tc-${tag}@example.com`, "main");
+      const token = await encryptPaymentLink({ email: founder, track: "main" }, config.paymentLinkKey!);
+      assertEquals(token.includes("tokfounder"), false); // the email is not readable in the token
+      const { out } = await webhook({ registration: { data: token }, payment: { transaction_id: `t_tok_${tag}`, amount: 69900, currency: "INR" } });
+      assertEquals([out.match, out.method, out.reference], ["matched", "founder_email", r]);
+      assertEquals(await status(r), "paid");
+    });
+
+    await t.step("a token made with the wrong key is ignored (logged), and the event is still stored", async () => {
+      const bad = await encryptPaymentLink({ email: `nobody-${tag}@example.com`, track: "junior" }, btoa("wrong-key-wrong-key-wrong-key-12"));
+      const { res, out } = await webhook({ registration: { data: bad } });
+      assertEquals([res.status, out.match], [200, "unmatched"]);
+    });
+
+    await t.step("every hit is logged with headers, security headers and payload, even rejected ones", async () => {
+      const logs: string[] = [];
+      const orig = { log: console.log, warn: console.warn };
+      console.log = (...a: unknown[]) => void logs.push(a.join(" "));
+      console.warn = (...a: unknown[]) => void logs.push(a.join(" "));
+      try {
+        const ok = await webhook({ payer: { email: `logcheck-${tag}@example.com` } }); // valid signature, unmatched
+        const bad = await webhook({ payer: { email: "x@y.co" } }, { secret: "wrong" }); // rejected
+        assertEquals([ok.res.status, bad.res.status], [200, 401]);
+      } finally {
+        console.log = orig.log;
+        console.warn = orig.warn;
+      }
+      const parsed = logs.map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+      const hits = parsed.filter((l) => l.msg === "webhook hit");
+      assertEquals(hits.length, 2, "both calls logged BEFORE verification");
+      const h = hits[0];
+      assert(h.securityHeaders["x-gevents-signature"].startsWith("sha256="));
+      assert(/^\d+$/.test(h.securityHeaders["x-gevents-timestamp"]));
+      assert(typeof h.securityHeaders.timestampSkewSeconds === "number");
+      assert(h.body.includes(`logcheck-${tag}@example.com`), "payload is logged");
+      assertEquals(h.headers["content-type"], "application/json");
+      assertEquals(h.bodySha256.length, 64);
+      const checks = parsed.filter((l) => l.msg === "webhook signature check");
+      assertEquals(checks.map((c) => c.result), ["ok", "invalid"]);
+      assert(Array.isArray(checks[1].hints), "failed checks include hints");
     });
 
     await sql.end();

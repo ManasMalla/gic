@@ -38,7 +38,7 @@ case "$TARGET" in
     $G run deploy gic-backend --image "$IMG" --region "$REGION" --service-account "$SA" \
       --allow-unauthenticated --port 8080 --memory 512Mi --cpu 1 --min-instances 0 --max-instances 5 \
       --add-cloudsql-instances "$CONN" --set-env-vars "CLOUD_SQL_CONNECTION_NAME=${CONN}" \
-      --set-secrets "DATABASE_URL=gic-database-url:latest,GEVENTS_WEBHOOK_SECRETS=gic-webhook-secret:latest,INTERNAL_API_TOKEN=gic-internal-token:latest,ADMIN_API_TOKEN=gic-admin-token:latest"
+      --set-secrets "DATABASE_URL=gic-database-url:latest,GEVENTS_WEBHOOK_SECRETS=gic-webhook-secret:latest,INTERNAL_API_TOKEN=gic-internal-token:latest,ADMIN_API_TOKEN=gic-admin-token:latest,PAYMENT_LINK_KEY=gic-payment-link-key:latest"
     ;;
   frontend)
     IMG="$(image_for frontend . --ignore-file=.gcloudignore)"
@@ -46,7 +46,7 @@ case "$TARGET" in
     log "Deploy frontend (backend = ${BACKEND_URL})"
     # Secrets that exist get attached. Google sign-in stays "not configured" until deploy/set-google-oauth.sh has been run;
     # re-run `deploy/redeploy.sh frontend --no-build` afterwards to attach them.
-    SECRETS="INTERNAL_API_TOKEN=gic-internal-token:latest,SESSION_SECRET=gic-session-secret:latest"
+    SECRETS="INTERNAL_API_TOKEN=gic-internal-token:latest,SESSION_SECRET=gic-session-secret:latest,PAYMENT_LINK_KEY=gic-payment-link-key:latest"
     for pair in "GOOGLE_CLIENT_ID=gic-google-client-id" "GOOGLE_CLIENT_SECRET=gic-google-client-secret"; do
       $G secrets describe "${pair#*=}" >/dev/null 2>&1 && SECRETS="${SECRETS},${pair}:latest" || echo "NOTE: secret ${pair#*=} missing, Google sign-in will be disabled"
     done

@@ -53,11 +53,11 @@ async function Body() {
       </dl>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <ButtonLink href={paymentUrl({ reference: app.reference, track: app.track })} external>Pay on GEvents ↗</ButtonLink>
+        <ButtonLink href={paymentUrl({ email: app.founderEmail ?? user.email, track: app.track })} external>Pay on GEvents ↗</ButtonLink>
         <ButtonLink href="/register/payment-status" variant="ghost">I&apos;ve paid — check status</ButtonLink>
       </div>
       <p className="mt-6 text-sm text-muted">
-        On GEvents, quote the reference above if asked. Questions? <a className="font-semibold text-brand underline" href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+        Use the team lead's email ({app.founderEmail ?? user.email}) on GEvents so we can match your payment automatically. Keep the reference above for any questions. Questions? <a className="font-semibold text-brand underline" href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
       </p>
     </div>
   );

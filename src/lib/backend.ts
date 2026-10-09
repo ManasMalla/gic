@@ -8,6 +8,7 @@ export type MyApplication = {
   createdAt: string;
   paidAt: string | null;
   team: { teamName: string; institution: string };
+  founderEmail: string | null;
   lastPayment: { type: "payment.succeeded" | "payment.failed" | "payment.refunded"; at: string } | null;
   idea: { theme: string | null; ideaTitle: string | null; problemStatement: string | null; ideaSummary: string | null; pitchVideoLink: string | null };
   deck: { filename: string; size: number } | null;

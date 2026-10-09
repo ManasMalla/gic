@@ -4,14 +4,19 @@ export type AppRow = { id: string; reference: string; track: Track; status: "awa
 
 export type MatchInput = {
   eventType: "payment.succeeded" | "payment.failed" | "payment.refunded";
-  /** Canonical reference if it was present AND passed the check digit; otherwise null. */
+  /** True when the webhook carried a reference at all (we no longer send one, but GEvents may still echo it). */
+  referenceProvided: boolean;
+  /** Canonical reference if provided AND it passed the check digit; otherwise null. */
   reference: string | null;
+  /** From the payload, or from the decrypted payment-link token. */
   track: Track | null;
   amount: number | null;
   /** Application previously linked to the same GEvents transaction (used for refunds/failures). */
   byTransaction: AppRow | null;
   byReference: AppRow | null;
-  /** Applications whose team includes the payer's email. */
+  /** Applications whose FOUNDER (team lead) email equals the email on the payment. */
+  byFounderEmail: AppRow[];
+  /** Applications where ANY team member / the Google account owner has that email. */
   byEmail: AppRow[];
 };
 
@@ -26,7 +31,7 @@ export type Flag =
 
 export type MatchResult = {
   status: "matched" | "needs_review" | "unmatched";
-  method: "reference" | "transaction" | "email" | null;
+  method: "reference" | "transaction" | "founder_email" | "email" | null;
   application: AppRow | null;
   flags: Flag[];
 };
@@ -34,13 +39,13 @@ export type MatchResult = {
 /**
  * Pure decision logic, no I/O. Rules, strongest signal first:
  *  1. transaction id seen before (refunds follow the original payment)
- *  2. our reference (check digit verified)
- *  3. payer email + track + exact fee, only when exactly ONE awaiting-payment application fits
+ *  2. a reference, if GEvents still sends one (check digit verified)
+ *  3. the FOUNDER's email + track + exact fee, when exactly ONE awaiting-payment application fits
+ *  4. any team member's email, same conditions
  * We never guess: anything uncertain becomes `needs_review`/`unmatched` for a human.
  */
 export function decide(i: MatchInput): MatchResult {
   const flags: Flag[] = [];
-
   let app: AppRow | null = null;
   let method: MatchResult["method"] = null;
 
@@ -51,17 +56,24 @@ export function decide(i: MatchInput): MatchResult {
     app = i.byReference;
     method = "reference";
   } else {
-    flags.push(i.reference ? "reference_not_found" : "reference_invalid");
+    if (i.referenceProvided) flags.push(i.reference ? "reference_not_found" : "reference_invalid");
+
     if (i.eventType === "payment.succeeded") {
-      const fits = i.byEmail.filter(
-        (a) => a.status === "awaiting_payment" && (i.track === null || a.track === i.track) && a.amountDue === i.amount,
-      );
-      if (fits.length === 1) {
-        app = fits[0];
+      const fits = (a: AppRow) => a.status === "awaiting_payment" && (i.track === null || a.track === i.track) && a.amountDue === i.amount;
+      const founder = i.byFounderEmail.filter(fits);
+      const anyone = i.byEmail.filter(fits);
+
+      if (founder.length === 1) {
+        app = founder[0];
+        method = "founder_email";
+        flags.length = 0; // matched without a reference: that is the normal path now, not a problem
+      } else if (founder.length > 1) {
+        flags.push("ambiguous_email");
+      } else if (anyone.length === 1) {
+        app = anyone[0];
         method = "email";
-        // Matched without our reference: remove the "reference_*" flag, it is not a problem any more.
-        flags.splice(0, flags.length);
-      } else if (fits.length > 1) {
+        flags.length = 0;
+      } else if (anyone.length > 1) {
         flags.push("ambiguous_email");
       } else {
         flags.push("no_candidate");

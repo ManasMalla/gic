@@ -21,6 +21,7 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:dev@db:5432/gic
       GEVENTS_WEBHOOK_SECRETS: dev-webhook-secret
+      PAYMENT_LINK_KEY: Z2ljLXRlc3Qta2V5LTAxMjM0NTY3ODlhYmNkZWYhISE=   # dev-only 32-byte key (base64)
       INTERNAL_API_TOKEN: dev-internal-token
       ADMIN_API_TOKEN: dev-admin-token
     ports: ["8091:8080"]
@@ -32,6 +33,7 @@ services:
       BACKEND_URL: http://backend:8080
       INTERNAL_API_TOKEN: dev-internal-token
       SESSION_SECRET: dev-session-secret-at-least-32-characters-long
+      PAYMENT_LINK_KEY: Z2ljLXRlc3Qta2V5LTAxMjM0NTY3ODlhYmNkZWYhISE=   # must equal the backend's
       APP_ALLOWED_ORIGINS: http://localhost:8090
       AUTH_DEV_LOGIN: "true"   # local-only email sign-in, ignored on Cloud Run. Real Google sign-in needs GOOGLE_CLIENT_ID/SECRET.
       GEVENTS_REGISTRATION_URL: https://gevents.gitam.edu/registration/ODkyMg==

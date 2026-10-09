@@ -9,10 +9,10 @@ Thanks for the discussion on the GIC website. As agreed, we have rebuilt the sit
 
 ## 1. How the flow will work
 
-1. A team completes its application on gic.gitam.edu (team, idea, pitch deck, members). We store it and generate an application reference such as `GIC26-3HVAA2TF-A`.
-2. We send the team to the GEvents registration page to pay (Junior ₹499 / Main ₹699 per team), passing that reference.
+1. A team completes its application on gic.gitam.edu (team, idea, pitch deck, members). We store it against the team lead's (founder's) email.
+2. We send the team to the GEvents registration page to pay (Junior ₹499 / Main ₹699 per team). The URL carries the founder's email and the track in **one encrypted parameter**, `data` (so nothing personal is readable in the URL).
 3. When the payment result is known, **GEvents calls our webhook** with the payment details.
-4. We match the payment to the application using the reference, mark it paid and email the team.
+4. We match the payment to the application using the **founder's email** from the webhook, mark it paid and email the team.
 
 ## 2. Request: payment confirmation webhook (GEvents → GIC)
 
@@ -27,7 +27,7 @@ Please send a server-to-server HTTPS `POST` to us for each payment outcome.
 
 **Events:** `payment.succeeded`, `payment.failed`, `payment.refunded`. Please send `succeeded` only after server-side confirmation from the payment gateway, not on the browser redirect.
 
-**Payload (summary):** `event_id` (unique), `event_type`, `occurred_at` (ISO-8601 with offset), `reference` (our value, echoed unchanged), `registration` (GEvents registration id, event id, track), `payment` (transaction id, gateway order/payment ids, `amount` in **paise** as an integer, currency, tax, method, paid time, bank/UTR reference, receipt number and URL, failure reason), `payer` (name, email, phone), `refund` (for refunds). A complete example is in the attachment.
+**Payload (summary):** `event_id` (unique), `event_type`, `occurred_at` (ISO-8601 with offset), `registration` (GEvents registration id, event id, track, and, if you can, our `data` value echoed back unchanged as `registration.data`), `payment` (transaction id, gateway order/payment ids, `amount` in **paise** as an integer, currency, tax, method, paid time, bank/UTR reference, receipt number and URL, failure reason), `payer` (name, **email = the team lead's email**, phone), `refund` (for refunds). A complete example is in the attachment.
 
 **Security:** every request carries
 `X-GEvents-Timestamp: <unix seconds>` and `X-GEvents-Signature: sha256=<hex>`, where the signature is `HMAC_SHA256(shared_secret, timestamp + "." + raw_request_body)`. We reject anything with a bad signature or a timestamp more than 5 minutes old. We will share the secret **through a secure channel (not by email)**, with separate secrets for test and production.
@@ -35,20 +35,21 @@ Please send a server-to-server HTTPS `POST` to us for each payment outcome.
 **Delivery:** at-least-once; we de-duplicate on `event_id`, so retries are safe. Please retry on any non-2xx or timeout with exponential backoff (about 1 min, 5 min, 30 min, 2 h, 6 h, 12 h). If an event can't be matched to an application we still answer `200` and handle it manually, so you will not see errors for that.
 
 **Also helpful (second priority):**
-- A read-only lookup API for reconciliation, e.g. by our reference or by date range.
-- A way for your team to re-send a webhook for a given reference.
+- A read-only lookup API for reconciliation, e.g. by founder email or by date range.
+- A way for your team to re-send a webhook for a given event or transaction id.
 - A sandbox/staging GEvents event with test gateway keys that can trigger each of the three event types.
 
 > **Important:** the payload in the attachment is our **proposal**, since we have not seen GEvents' current payment response. If GEvents already sends a callback in a different format, please send us a sample and we will adapt on our side.
 
 ## 3. Request: changes on the GEvents registration page
 
-1. **Accept and store our reference.** The page should accept it as a URL parameter, e.g.
-   `https://gevents.gitam.edu/registration/ODkyMg==?ref=GIC26-3HVAA2TF-A&track=junior`
-   and keep it with the registration/transaction so it can be returned in the webhook. If a URL parameter isn't possible, a required "GIC application reference" field is acceptable (our references include a check character, so typos can be detected).
-2. **Pre-fill / lock the track and fee** from `track`, so a team can't pay the Main fee for a Junior application or vice versa.
-3. **Return the user to us after payment** (nice to have): redirect to `https://gic.gitam.edu/register/payment-status?ref=<reference>` on success or failure.
-4. **Questions we need answered:**
+1. **Read the extra `data` URL parameter** and keep it with the registration/transaction, e.g.
+   `https://gevents.gitam.edu/registration/ODkyMg==?data=v1.I4-CR28FM3IiDmnP.-JBu8vmhqAEiVYCJWXPv…`
+   It is AES-256-GCM encrypted (founder email + track). **Echo it back unchanged** as `registration.data` in the webhook (strongly preferred).
+2. **Send the founder's email back as `payer.email`.** This is what we match on, so it must be the team lead's email. If your form lets the payer type a different one, please also keep the original via the echoed `data`.
+3. *(Optional)* **Pre-fill the founder email and lock the track/fee** by decrypting `data` with a shared key (we send the key through a secure channel, never by email). The format and a ready-to-use **PHP snippet** are in the attached specification (section 2.1).
+4. **Return the user to us after payment** (nice to have): redirect to `https://gic.gitam.edu/register/payment-status` on success or failure (the page works out who they are from their sign-in).
+5. **Questions we need answered:**
    - Which payment gateway is used, and are gateway order/payment ids and the bank (UTR) reference available at confirmation time?
    - Is GST applied to the fee? If so, is the amount inclusive, and is an invoice/receipt number generated?
    - Do you issue refunds, and under what conditions?

@@ -49,7 +49,9 @@ export const webhookSchema = z.object({
   event_type: z.enum(["payment.succeeded", "payment.failed", "payment.refunded"]),
   occurred_at: z.iso.datetime({ offset: true }),
   reference: z.string().nullish(),
-  registration: z.object({ track: z.enum(["junior", "main"]).nullish() }).loose().nullish(),
+  // `registration.data` (or top-level `data`): GEvents may echo back the opaque token we put in the payment URL.
+  registration: z.object({ track: z.enum(["junior", "main"]).nullish(), data: z.string().nullish() }).loose().nullish(),
+  data: z.string().nullish(),
   payment: z.object({
     transaction_id: z.string().min(1).max(100),
     amount: z.number().int().nonnegative(),

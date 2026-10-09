@@ -16,6 +16,11 @@ export const config = {
    */
   cloudSqlConnectionName: Deno.env.get("CLOUD_SQL_CONNECTION_NAME") ?? null,
   cloudSqlSocketDir: Deno.env.get("CLOUD_SQL_SOCKET_DIR") ?? "/cloudsql",
+  /** AES-256 key (base64, 32 bytes) for the payment-link token. Optional here: only needed to read an echoed token. */
+  paymentLinkKey: Deno.env.get("PAYMENT_LINK_KEY") ?? null,
+  paymentLinkMaxAgeSeconds: 14 * 24 * 3600,
+  /** Log full headers + payload of every webhook hit (contains payer email/phone: set to "false" to log only a summary). */
+  webhookDebugLog: (Deno.env.get("WEBHOOK_DEBUG_LOG") ?? "true") !== "false",
   /** Used by the Next.js server to call this API. */
   internalToken: required("INTERNAL_API_TOKEN"),
   /** Used by organisers for the review queue. */
