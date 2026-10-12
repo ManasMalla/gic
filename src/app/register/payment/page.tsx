@@ -34,10 +34,10 @@ async function Body() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand">Step 2 of 3</p>
+      <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand">Step 3 of 4 · Pay now</p>
       <h1 className="mt-2 font-display text-4xl font-bold">Pay the registration fee</h1>
       <p className="mt-3 text-muted">
-        Team <strong className="text-ink">{app.team.teamName}</strong> is saved. Pay the fee on GITAM GEvents to confirm your place. We&apos;ll unlock your portal as soon as the payment is confirmed.
+        Team <strong className="text-ink">{app.team.teamName}</strong> is saved. Pay the fee on GITAM GEvents to confirm your place. As soon as the payment is confirmed you&apos;ll be taken to your team portal for <strong className="text-ink">step 4: submit your idea</strong> (details, pitch deck and video). Payment is not the last step.
       </p>
 
       {failed && (
@@ -64,7 +64,7 @@ async function Body() {
         <ButtonLink href="/register/payment-status" variant="ghost">I&apos;ve paid — check status</ButtonLink>
       </div>
       <p className="mt-6 text-sm text-muted">
-        Use the team lead's email ({app.founderEmail ?? user.email}) on GEvents so we can match your payment automatically. Keep the reference above for any questions. Questions? <a className="font-semibold text-brand underline" href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+        Use the team lead&apos;s email ({app.founderEmail ?? user.email}) on GEvents so we can match your payment automatically. Keep the reference above for any questions. Questions? <a className="font-semibold text-brand underline" href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
       </p>
     </div>
   );

@@ -145,7 +145,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "How can I register?",
         "a": [
-          "Register through the official portal: [Register for GIC 2026](/register)"
+          "Register through the official portal: [Register for GIC 2026](/register). It takes four steps: 1) register your team, 2) pay the fee on GEvents, 3) submit your idea (details, pitch deck and video) in the team portal, 4) edit it any time until 31 October 2026. Payment is not the last step: your entry is complete only after you submit your idea."
         ]
       },
       {

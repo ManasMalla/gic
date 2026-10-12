@@ -23,15 +23,39 @@ export const processIntro =
 export const process: ProcessGroup[] = [
   {
     id: "registration",
-    label: "Registration & Submission",
-    summary: "Submit your idea and pitch materials",
+    label: "How to apply",
+    summary: "Four steps, and payment is not the last one. Your entry is complete only after you submit your idea in the team portal.",
     steps: [
       {
-        title: "Register online",
+        title: "Register your team",
         body: [
-          "All teams submit a 1-minute video pitch and a pitch deck online.",
-          "Guidelines for the video and deck are shared along with the registration form.",
+          "Sign in with Google at gic.gitam.edu/register and add your team and members.",
+          "Main Track: 2–6 members. Junior Track: 2–4 members. The Lead and Co-Lead are the primary participants.",
           "Registration window: 5 August – 31 October 2026.",
+        ],
+      },
+      {
+        title: "Pay the registration fee",
+        body: [
+          "You are sent to GITAM GEvents to pay: ₹499 per team (Junior) or ₹699 per team (Main).",
+          "Use the team Lead's email on GEvents so we can match your payment automatically.",
+          "After paying you are brought back here and taken to your team portal.",
+        ],
+      },
+      {
+        title: "Submit your idea in the portal",
+        body: [
+          "Choose your theme and fill in your idea details.",
+          "Upload your pitch deck (PDF, PPT or PPTX, up to 10 MB).",
+          "Add a 1-minute pitch video: paste a link or upload a file (up to 25 MB). Then press Submit.",
+        ],
+      },
+      {
+        title: "Edit until the deadline",
+        body: [
+          "You can change your idea, deck and video any time until 31 October 2026, 11:59 PM IST.",
+          "The Lead and Co-Lead can edit; every listed member can view the team's submission.",
+          "Submissions then go to Round 1 desk screening.",
         ],
       },
     ],

@@ -40,7 +40,7 @@ export function Process() {
 
       <div id={`${base}-panel`} role="tabpanel" aria-labelledby={`${base}-tab-${tab}`} className="mt-8">
         <p className="mb-6 text-lg text-muted">{group.summary}</p>
-        <ol className="grid gap-5 md:grid-cols-3">
+        <ol className={cn("grid gap-5", group.steps.length === 4 ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-3")}>
           {group.steps.map((s, i) => (
             <li key={s.title} className={cn("rounded-card border border-line bg-white p-7 shadow-card", group.steps.length === 1 && "md:col-span-3")}>
               <span className="grid size-9 place-items-center rounded-full bg-gold font-display font-bold">{i + 1}</span>

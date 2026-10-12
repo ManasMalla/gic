@@ -15,29 +15,38 @@ const steps: { id: StepId; title: string }[] = [
   { id: "confirm", title: "Review" },
 ];
 
+// What the progress bar shows: the whole journey, including the two steps that happen after this form.
+const journey = ["Team & track", "Team members", "Pay now", "Submit idea"];
+
 const genderOptions = GENDERS.map((g) => ({ value: g, label: g.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase()) }));
 const initial: RegisterState = { status: "idle" };
 
 const owns: Record<StepId, string[]> = {
-  team: ["track", "teamName", "institution", "address", "cityState"],
+  team: ["track", "teamName", "referralCode", "institution", "address", "cityState"],
   members: ["founder", "cofounder", "member3", "member4", "member5", "member6"],
   confirm: ["declaration", "remarks"],
 };
 
 /** Step 1 of the journey (after Google sign-in): who is on the team. Payment is next, the idea comes later in the portal. */
-export function TeamWizard({ defaultTrack, email }: { defaultTrack: "junior" | "main" | ""; email: string }) {
+export function TeamWizard({ defaultTrack, email, paidFirst = false }: { defaultTrack: "junior" | "main" | ""; email: string; paidFirst?: boolean }) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(registerTeam, initial);
   const [step, setStep] = useState(0);
   const [track, setTrack] = useState<string>(defaultTrack);
+  const [memberCount, setMemberCount] = useState(2); // founder + co-founder are always shown
   const [clientErrors, setClientErrors] = useState<FieldErrors>({});
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state.status === "success" || state.status === "exists") router.push("/register/payment");
-  }, [state, router]);
+    if (state.status === "success" || state.status === "exists") {
+      // Already paid: no payment page, let the status page attach the payment and move on to the portal.
+      router.push(paidFirst ? "/register/payment-status?status=success&paid=1" : "/register/payment");
+    }
+  }, [state, router, paidFirst]);
 
   const errors = { ...(state.status === "error" ? state.errors : {}), ...clientErrors };
+  const maxMembers = track === "main" ? 6 : 4;
+  const shown = Math.min(memberCount, maxMembers);
   const trackInfo = tracks.find((t) => t.id === track);
 
   function validateCurrent(): FieldErrors {
@@ -67,16 +76,31 @@ export function TeamWizard({ defaultTrack, email }: { defaultTrack: "junior" | "
         Signed in as <strong className="text-ink">{email}</strong>. This account will manage your team&apos;s application.
       </p>
 
-      <ol className="mb-10 grid grid-cols-3 gap-2" aria-label="Progress">
-        {steps.map((s, i) => (
-          <li key={s.id} aria-current={i === step ? "step" : undefined}>
-            <div className={cn("h-1.5 rounded-full", i <= step ? "bg-brand" : "bg-line")} />
-            <p className={cn("mt-2 text-xs font-semibold sm:text-sm", i === step ? "text-brand" : "text-muted")}>
-              <span className="hidden sm:inline">{i + 1}. </span>{s.title}
-            </p>
-          </li>
-        ))}
+      {/* The whole journey. Paid first: "3 Pay now" is already done, so the order reads 3 (done) -> 1 -> 2 -> 4. */}
+      <ol className="mb-10 grid grid-cols-4 gap-2" aria-label="Progress">
+        {(paidFirst
+          ? [{ n: 3, title: "Pay now", done: true }, { n: 1, title: "Team & track" }, { n: 2, title: "Team members" }, { n: 4, title: "Submit idea" }]
+          : journey.map((title, i) => ({ n: i + 1, title }))
+        ).map((item, i) => {
+          const active = paidFirst ? Math.min(step, 1) + 1 === i : i === step;
+          const filled = "done" in item && item.done ? true : paidFirst ? i <= Math.min(step, 1) + 1 : i <= step;
+          return (
+            <li key={item.title} aria-current={active ? "step" : undefined}>
+              <div className={cn("h-1.5 rounded-full", filled ? "bg-brand" : "bg-line")} />
+              <p className={cn("mt-2 text-xs font-semibold sm:text-sm", active ? "text-brand" : "text-muted")}>
+                <span className="hidden sm:inline">{item.n}. </span>{item.title}{"done" in item && item.done ? " ✓" : ""}
+              </p>
+            </li>
+          );
+        })}
       </ol>
+
+      {paidFirst && (
+        <p role="status" className="mb-6 rounded-xl bg-mint-soft px-4 py-3 text-sm text-ink">
+          <strong>We received your payment.</strong> Now tell us about your team. Use the <strong>email you paid with on GEvents</strong> as the Lead&apos;s email
+          (or add it as a team member) so we can attach your payment automatically, then you&apos;ll submit your idea.
+        </p>
+      )}
 
       {state.status === "error" && state.message && (
         <div role="alert" className="mb-6 rounded-xl bg-coral/10 p-4 text-sm font-medium text-coral">
@@ -101,7 +125,10 @@ export function TeamWizard({ defaultTrack, email }: { defaultTrack: "junior" | "
           ))}
         </div>
         {errors.track && <p role="alert" className="text-xs font-medium text-coral">{errors.track}</p>}
-        <TextField label="Team name" name="teamName" maxLength={100} required error={errors.teamName} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextField label="Team name" name="teamName" maxLength={100} required error={errors.teamName} />
+          <TextField label="Referral code (optional)" name="referralCode" maxLength={30} autoComplete="off" error={errors.referralCode} />
+        </div>
         <TextField label={track === "junior" ? "School name" : "College / institution"} name="institution" maxLength={150} required error={errors.institution} />
         <TextAreaField label="Address" name="address" maxLength={200} required error={errors.address} />
         <TextField label="City & state" name="cityState" maxLength={100} required error={errors.cityState} />
@@ -112,25 +139,29 @@ export function TeamWizard({ defaultTrack, email }: { defaultTrack: "junior" | "
         <p className="text-muted">{track === "main" ? "2–6" : "2–4"} members. Only the Lead and Co-lead are invited to the Grand Finale; everyone receives a certificate.</p>
         <Member prefix="founder" title="Lead (founder)" errors={errors} required />
         <Member prefix="cofounder" title="Co-lead" errors={errors} required />
-        <Member prefix="member3" title="Member 3 (optional)" errors={errors} />
-        <Member prefix="member4" title="Member 4 (optional)" errors={errors} />
-        {track === "main" && (
-          <>
-            <Member prefix="member5" title="Member 5 (optional)" errors={errors} />
-            <Member prefix="member6" title="Member 6 (optional)" errors={errors} />
-          </>
+        {[3, 4, 5, 6].filter((n) => n <= shown).map((n) => (
+          <Member
+            key={n}
+            prefix={`member${n}`}
+            title={`Member ${n} (optional)`}
+            errors={errors}
+            onRemove={n === shown ? () => setMemberCount(n - 1) : undefined}
+          />
+        ))}
+        {shown < maxMembers && (
+          <Button type="button" variant="ghost" onClick={() => setMemberCount(shown + 1)}>+ Add member {shown + 1}</Button>
         )}
       </fieldset>
 
       <fieldset hidden={step !== 2} className="space-y-6">
-        <legend className="mb-2 font-display text-3xl font-bold">Review &amp; continue</legend>
+        <legend className="mb-2 font-display text-3xl font-bold">{paidFirst ? "Review & finish" : "Review & continue to payment"}</legend>
         <div className="rounded-card bg-mint-soft p-6">
-          <p className="text-xs font-bold uppercase tracking-widest text-brand">Registration fee</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-brand">{paidFirst ? "Registration fee: paid ✓" : "Registration fee"}</p>
           <p className="mt-1 font-display text-4xl font-bold">{trackInfo ? `₹${trackInfo.fee}` : "—"} <span className="text-base font-normal text-muted">per team</span></p>
           <ol className="mt-4 list-inside list-decimal space-y-1 text-sm text-muted">
             <li><strong className="text-ink">Save your team</strong> (this step)</li>
-            <li>Pay the fee on <strong className="text-ink">GITAM GEvents</strong></li>
-            <li>Once payment is confirmed, open the <strong className="text-ink">portal</strong> to choose your theme and submit your idea — you can edit it until the deadline.</li>
+            <li><strong className="text-ink">Pay now</strong> on GITAM GEvents{paidFirst ? " (done, we have your payment)" : ", then you're brought straight back here"}</li>
+            <li><strong className="text-ink">Submit your idea</strong> in the team portal: details, pitch deck and a 1-minute video. <strong className="text-ink">Payment is not the last step</strong>; your entry is complete only after you submit.</li>
           </ol>
         </div>
         <TextAreaField label="Remarks (optional)" name="remarks" maxLength={100} rows={2} error={errors.remarks} />
@@ -146,18 +177,21 @@ export function TeamWizard({ defaultTrack, email }: { defaultTrack: "junior" | "
         {step < steps.length - 1 ? (
           <Button type="button" variant="brand" onClick={next}>Continue →</Button>
         ) : (
-          <Button type="submit" disabled={pending || redirecting}>{pending || redirecting ? "Saving…" : "Save team & continue to payment"}</Button>
+          <Button type="submit" disabled={pending || redirecting}>{pending || redirecting ? "Saving…" : paidFirst ? "Save team & continue" : "Save team & continue to payment"}</Button>
         )}
       </div>
     </form>
   );
 }
 
-function Member({ prefix, title, errors, required }: { prefix: string; title: string; errors: FieldErrors; required?: boolean }) {
+function Member({ prefix, title, errors, required, onRemove }: { prefix: string; title: string; errors: FieldErrors; required?: boolean; onRemove?: () => void }) {
   const f = (k: string) => `${prefix}.${k}`;
   return (
     <div className="rounded-card border border-line p-6">
-      <h3 className="mb-4 font-display text-xl font-bold">{title}</h3>
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h3 className="font-display text-xl font-bold">{title}</h3>
+        {onRemove && <button type="button" onClick={onRemove} className="text-sm font-medium text-coral underline">Remove</button>}
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <TextField label="Full name" name={f("name")} required={required} maxLength={100} error={errors[f("name")]} autoComplete="off" />
         <TextField label="Course & year" name={f("courseYear")} required={required} maxLength={100} error={errors[f("courseYear")]} />

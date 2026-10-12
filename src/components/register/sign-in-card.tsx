@@ -1,7 +1,7 @@
 import { ButtonLink } from "@/components/ui/button";
 
 /** Shown wherever a signed-in user is required. `next` is where they land after Google sign-in. */
-export function SignInCard({ next, title = "Sign in to apply", error }: { next: string; title?: string; error?: string }) {
+export function SignInCard({ next, title = "Sign in to apply", intro, error }: { next: string; title?: string; intro?: string; error?: string }) {
   const messages: Record<string, string> = {
     not_configured: "Google sign-in isn't configured on this environment yet.",
     cancelled: "Sign-in was cancelled. You can try again.",
@@ -12,7 +12,7 @@ export function SignInCard({ next, title = "Sign in to apply", error }: { next: 
     <div className="mx-auto max-w-lg rounded-[1.75rem] border border-line bg-white p-8 text-center shadow-card sm:p-10">
       <h2 className="font-display text-3xl font-bold">{title}</h2>
       <p className="mt-3 text-muted">
-        Use your Google (Gmail) account. It becomes your team&apos;s login to track payment and submit or edit your idea later.
+        {intro ?? "Use your Google (Gmail) account. It becomes your team's login to track payment and submit or edit your idea later."}
       </p>
       {error && messages[error] && <p role="alert" className="mt-5 rounded-xl bg-coral/10 p-3 text-sm font-medium text-coral">{messages[error]}</p>}
       <ButtonLink href={`/api/auth/google?next=${encodeURIComponent(next)}`} variant="brand" className="mt-7 w-full gap-3 py-3.5 text-base">

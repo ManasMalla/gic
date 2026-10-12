@@ -23,9 +23,23 @@ export default function SignInPage({ searchParams }: { searchParams: Promise<{ n
 async function Body({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {
   const { next, error } = await searchParams;
   const target = safeNext(next);
+  // People come straight back from GEvents after paying, signed out: say so, so the sign-in screen is not a surprise.
+  const fromPayment = target.startsWith("/register/payment-status");
+  const paid = fromPayment && target.includes("status=success");
   return (
     <>
-      <SignInCard next={target} title="Sign in" error={error} />
+      <SignInCard
+        next={target}
+        title={paid ? "Payment received. Sign in to continue" : fromPayment ? "Sign in to see your payment" : "Sign in"}
+        intro={
+          paid
+            ? "Thank you for paying. Sign in with Google to finish your team details (if you haven't yet), attach your payment and submit your idea. It's the last step."
+            : fromPayment
+              ? "Use the same Google account you registered your team with."
+              : undefined
+        }
+        error={error}
+      />
       {devLoginEnabled() && <DevLogin next={target} />}
     </>
   );

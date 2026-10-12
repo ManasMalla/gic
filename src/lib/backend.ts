@@ -12,11 +12,20 @@ export type MyApplication = {
   founder: { name: string | null; email: string | null; phone: string | null; gender: string | null } | null;
   lastPayment: { type: "payment.succeeded" | "payment.failed" | "payment.refunded"; at: string } | null;
   idea: { theme: string | null; ideaTitle: string | null; problemStatement: string | null; ideaSummary: string | null; pitchVideoLink: string | null };
-  deck: { filename: string; size: number } | null;
+  deck: { filename: string; size: number; url: string | null } | null;
+  video: { filename: string; size: number; url: string } | null;
+  /** False when file storage isn't configured: only the video link is offered. */
+  videoUploadAvailable: boolean;
   ideaComplete: boolean;
+  /** Set when the team pressed Submit (it needs details + deck + a video link or file). */
+  submittedAt: string | null;
   ideaUpdatedAt: string | null;
   ideaEditDeadline: string;
   canEditIdea: boolean;
+  /** "lead" = Lead or Co-lead (can edit); "member" = members 3-6 (read-only). */
+  viewerRole: "owner" | "lead" | "member";
+  ownerEmail: string | null;
+  members: { role: string; name: string; email: string; courseYear: string }[];
 };
 
 const base = () => {
@@ -41,4 +50,11 @@ export async function fetchMyApplication(email: string): Promise<MyApplication |
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`backend /api/me/application -> ${res.status}`);
   return (await res.json()) as MyApplication;
+}
+
+/** A succeeded GEvents payment from this account's email that no team has claimed yet (they paid before registering). */
+export async function fetchPendingPayment(email: string): Promise<{ amount: number | null; occurredAt: string } | null> {
+  const res = await backend("/api/me/payment", email);
+  if (!res.ok) return null;
+  return ((await res.json()) as { pending: { amount: number | null; occurredAt: string } | null }).pending;
 }

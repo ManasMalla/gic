@@ -1,82 +1,203 @@
 "use client";
 
-import { startTransition, useActionState, useState } from "react";
-import { saveIdea, type SaveIdeaState } from "@/app/portal/actions";
+import { useRouter } from "next/navigation";
+import { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import { removeVideo, saveAndSubmit, saveIdea, saveVideo, uploadDeck, type SaveIdeaState } from "@/app/portal/actions";
 import { Button } from "@/components/ui/button";
 import { FileField, SelectField, TextAreaField, TextField } from "@/components/register/fields";
 import { themes } from "@/content/themes";
 import type { MyApplication } from "@/lib/backend";
-import { MAX_DECK_BYTES } from "@/lib/portal/schema";
+import { MAX_DECK_BYTES, MAX_VIDEO_BYTES } from "@/lib/portal/schema";
 
 const initial: SaveIdeaState = { status: "idle" };
 const kb = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 const fmt = (iso: string | number) => new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+const errorOf = (s: SaveIdeaState) => (s.status === "error" ? s : undefined);
 
+/**
+ * The idea, in steps on one page: details → pitch deck → pitch video (a link OR a file) → Submit.
+ * Each file has its own small Upload button (shown once a file is chosen). Submit refuses while a chosen file is still un-uploaded.
+ */
 export function IdeaForm({ initialApp }: { initialApp: MyApplication }) {
-  const [state, formAction, pending] = useActionState(saveIdea, initial);
-  // After a successful save we show what the server now holds (e.g. the stored deck's name).
-  const app = state.status === "saved" ? state.application : initialApp;
-  const [editing, setEditing] = useState(!initialApp.ideaComplete);
+  const router = useRouter();
+  const [app, setApp] = useState(initialApp);
+  useEffect(() => setApp(initialApp), [initialApp]);
   const readOnly = !app.canEditIdea;
-  const errors = state.status === "error" ? state.errors : {};
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const [details, detailsAction, savingDetails] = useActionState(saveIdea, initial);
+  const [deckState, deckAction, uploadingDeck] = useActionState(uploadDeck, initial);
+  const [videoState, videoAction, uploadingVideo] = useActionState(saveVideo, initial);
+  const [removeState, removeAction, removing] = useActionState(removeVideo, initial);
+  const [submitState, submitAction, submitting] = useActionState(saveAndSubmit, initial);
+
+  // Every successful step returns the fresh application: show it, and refresh the server data too.
+  useEffect(() => {
+    const latest = [details, deckState, videoState, removeState, submitState]
+      .flatMap((s) => (s.status === "saved" ? [s] : []))
+      .sort((a, b) => b.savedAt - a.savedAt)[0];
+    if (latest) { setApp(latest.application); router.refresh(); }
+  }, [details, deckState, videoState, removeState, submitState, router]);
+
+  // A chosen-but-not-uploaded file blocks Submit.
+  const [pendingDeck, setPendingDeck] = useState(false);
+  const [pendingVideo, setPendingVideo] = useState(false);
+  const [blocked, setBlocked] = useState("");
+  const deckForm = useRef<HTMLFormElement>(null);
+  const videoForm = useRef<HTMLFormElement>(null);
+  useEffect(() => { if (deckState.status === "saved") { setPendingDeck(false); deckForm.current?.reset(); } }, [deckState]);
+  useEffect(() => { if (videoState.status === "saved") { setPendingVideo(false); videoForm.current?.reset(); } }, [videoState]);
+
+  const errors = details.status === "error" ? details.errors : {};
+  const idea = app.idea;
+  const submitted = !!app.submittedAt;
+  const missing = [
+    !idea.theme || !idea.ideaTitle || !idea.problemStatement || !idea.ideaSummary ? "Idea details" : null,
+    !app.deck ? "Pitch deck" : null,
+    !idea.pitchVideoLink && !app.video ? "Video (link or file)" : null,
+  ].filter(Boolean) as string[];
+
+  function onDetailsSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const native = e.nativeEvent as SubmitEvent;
+    const finalStep = (native.submitter as HTMLButtonElement | null)?.value === "submit";
+    if (finalStep) {
+      const pending = [pendingDeck && "pitch deck", pendingVideo && "video"].filter(Boolean).join(" and ");
+      if (pending) {
+        const msg = `You chose a ${pending} file but haven't clicked Upload. Click Upload first, then Submit.`;
+        setBlocked(msg);
+        window.alert(msg);
+        return;
+      }
+    }
+    setBlocked("");
     // Calling the action directly keeps typed values in place when validation fails (no automatic form reset).
-    startTransition(() => formAction(new FormData(e.currentTarget)));
+    const fd = new FormData(e.currentTarget);
+    startTransition(() => (finalStep ? submitAction(fd) : detailsAction(fd)));
   }
 
-  const idea = app.idea;
+  const note = (s: SaveIdeaState) => errorOf(s)?.message;
+  const flash = [note(details), note(deckState), note(videoState), note(removeState), note(submitState), blocked].find(Boolean);
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-6">
-      {state.status === "error" && state.message && (
-        <div role="alert" className="rounded-xl bg-coral/10 p-4 text-sm font-medium text-coral">{state.message}</div>
-      )}
-      {state.status === "saved" && (
-        <div role="status" className="rounded-xl bg-mint-soft p-4 text-sm font-medium text-brand">
-          ✓ Saved at {fmt(state.savedAt)}. You can keep editing until the deadline.
-        </div>
+    <div className="space-y-8">
+      {flash && <div role="alert" className="rounded-xl bg-coral/10 p-4 text-sm font-medium text-coral">{flash}</div>}
+      {details.status === "saved" && (
+        <div role="status" className="rounded-xl bg-mint-soft p-4 text-sm font-medium text-brand">✓ Details saved at {fmt(details.savedAt)}.</div>
       )}
 
-      <fieldset disabled={readOnly || (!editing && app.ideaComplete)} className="space-y-6 disabled:opacity-80">
-        <SelectField
-          key={`theme-${idea.theme}`} label="Innovation theme" name="theme" required error={errors.theme}
-          options={themes.map((t) => ({ value: t.id, label: t.name }))} defaultValue={idea.theme ?? ""}
-          hint="Pick the theme closest to your idea."
-        />
-        <TextField key={`t-${idea.ideaTitle}`} label="Idea / venture title" name="ideaTitle" maxLength={150} required defaultValue={idea.ideaTitle ?? ""} error={errors.ideaTitle} />
-        <TextAreaField key={`p-${idea.problemStatement}`} label="Problem statement" name="problemStatement" maxLength={300} required defaultValue={idea.problemStatement ?? ""} error={errors.problemStatement} />
-        <TextAreaField key={`s-${idea.ideaSummary}`} label="Idea summary" name="ideaSummary" maxLength={600} required defaultValue={idea.ideaSummary ?? ""} error={errors.ideaSummary} />
-        <TextField key={`v-${idea.pitchVideoLink}`} label="1-minute pitch video link" name="pitchVideoLink" type="url" inputMode="url" placeholder="https://youtube.com/… or Drive link" maxLength={255} required defaultValue={idea.pitchVideoLink ?? ""} error={errors.pitchVideoLink} />
-
-        <div>
-          <FileField
-            label={app.deck ? "Replace pitch deck (optional)" : "Pitch deck"} name="pitchDeck" accept=".pdf,.ppt,.pptx"
-            required={!app.deck} error={errors.pitchDeck} hint={`PDF, PPT or PPTX, up to ${MAX_DECK_BYTES / 1024 / 1024} MB.`}
+      {/* 1 — details. The video link input (step 3) and the final Submit button (step 4) belong to this form too. */}
+      <form id="idea-details" onSubmit={onDetailsSubmit} noValidate className="space-y-6">
+        <h3 className="font-display text-xl font-bold">1 · Your idea</h3>
+        <fieldset disabled={readOnly} className="space-y-6 disabled:opacity-80">
+          <SelectField
+            key={`theme-${idea.theme}`} label="Innovation theme" name="theme" required error={errors.theme}
+            options={themes.map((t) => ({ value: t.id, label: t.name }))} defaultValue={idea.theme ?? ""} hint="Pick the theme closest to your idea."
           />
-          {app.deck && (
-            <p className="mt-2 text-sm text-muted">
-              Current deck: <strong className="text-ink">{app.deck.filename}</strong> ({kb(app.deck.size)}). Leave the box empty to keep it.
-            </p>
-          )}
-          <p className="mt-1 text-xs text-muted">
+          <TextField key={`t-${idea.ideaTitle}`} label="Idea / venture title" name="ideaTitle" maxLength={150} required defaultValue={idea.ideaTitle ?? ""} error={errors.ideaTitle} />
+          <TextAreaField key={`p-${idea.problemStatement}`} label="Problem statement" name="problemStatement" maxLength={300} required defaultValue={idea.problemStatement ?? ""} error={errors.problemStatement} />
+          <TextAreaField key={`s-${idea.ideaSummary}`} label="Idea summary" name="ideaSummary" maxLength={600} required defaultValue={idea.ideaSummary ?? ""} error={errors.ideaSummary} />
+        </fieldset>
+        {!readOnly && (
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" value="save" variant="brand" disabled={savingDetails}>{savingDetails ? "Saving…" : "Save details"}</Button>
+            {app.ideaUpdatedAt && <span className="text-sm text-muted">Last saved {fmt(app.ideaUpdatedAt)}</span>}
+          </div>
+        )}
+      </form>
+
+      {/* 2 — pitch deck */}
+      <section className="space-y-3 rounded-card border border-line p-5">
+        <h3 className="font-display text-xl font-bold">2 · Pitch deck</h3>
+        {app.deck && (
+          <p className="text-sm">
+            Current deck: <a href={app.deck.url ?? "/portal/deck"} className="font-semibold text-brand underline">{app.deck.filename}</a> <span className="text-muted">({kb(app.deck.size)})</span>
+          </p>
+        )}
+        {!app.deck && readOnly && <p className="text-sm text-muted">Not uploaded yet.</p>}
+        {!readOnly && (
+          <form ref={deckForm} action={deckAction} className="flex flex-wrap items-end gap-3">
+            <FileField
+              label={app.deck ? "Replace deck" : "Choose your deck"} name="pitchDeck" accept=".pdf,.ppt,.pptx" className="min-w-64 flex-1"
+              error={errorOf(deckState)?.errors.pitchDeck} hint={`PDF, PPT or PPTX, up to ${MAX_DECK_BYTES / 1024 / 1024} MB. `}
+              onChange={(e) => { setPendingDeck(!!e.currentTarget.files?.length); setBlocked(""); }}
+            />
+            {pendingDeck && <Button type="submit" variant="brand" disabled={uploadingDeck}>{uploadingDeck ? "Uploading…" : "Upload"}</Button>}
+          </form>
+        )}
+        {!readOnly && (
+          <p className="text-xs text-muted">
             Use the <a className="font-semibold text-brand underline" href="/documents/GIC-2026-Pitch-Deck-Template.pptx">official 2026 template</a>.
           </p>
-        </div>
-        <input type="hidden" name="hasExistingDeck" value={app.deck ? "1" : "0"} />
-      </fieldset>
+        )}
+      </section>
 
-      {!readOnly && (
-        <div className="flex flex-wrap items-center gap-3">
-          {app.ideaComplete && !editing ? (
-            <Button type="button" variant="brand" onClick={() => setEditing(true)}>Edit my idea</Button>
-          ) : (
-            <Button type="submit" disabled={pending}>{pending ? "Saving…" : app.ideaComplete ? "Save changes" : "Submit idea"}</Button>
-          )}
-          {app.ideaUpdatedAt && <span className="text-sm text-muted">Last saved {fmt(app.ideaUpdatedAt)}</span>}
+      {/* 3 — pitch video: a link OR a file, in one place. The link is saved with "Save details" / Submit (form="idea-details"). */}
+      <section className="space-y-4 rounded-card border border-line p-5">
+        <div>
+          <h3 className="font-display text-xl font-bold">3 · Pitch video</h3>
+          <p className="mt-1 text-sm text-muted">Add a link <strong className="text-ink">or</strong> upload a video file. Either one is enough.</p>
         </div>
+
+        {readOnly ? (
+          idea.pitchVideoLink ? (
+            <p className="break-all text-sm"><a href={idea.pitchVideoLink} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand underline">{idea.pitchVideoLink}</a></p>
+          ) : null
+        ) : (
+          <TextField
+            key={`v-${idea.pitchVideoLink}`} form="idea-details" label="Video link" name="pitchVideoLink" type="url" inputMode="url"
+            placeholder="https://youtube.com/… or Drive link" maxLength={255} defaultValue={idea.pitchVideoLink ?? ""} error={errors.pitchVideoLink}
+            hint="Saved when you press Save details or Submit."
+          />
+        )}
+
+        {(app.videoUploadAvailable || app.video) && (
+          <>
+            <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-muted" aria-hidden>
+              <span className="h-px flex-1 bg-line" />or<span className="h-px flex-1 bg-line" />
+            </div>
+            {app.video && (
+              <p className="text-sm">
+                <a href={app.video.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand underline">{app.video.filename}</a>{" "}
+                <span className="text-muted">({kb(app.video.size)})</span>
+              </p>
+            )}
+            {!readOnly && app.videoUploadAvailable && (
+              <form ref={videoForm} action={videoAction} className="flex flex-wrap items-end gap-3">
+                <FileField
+                  label={app.video ? "Replace video file" : "Upload a video file"} name="pitchVideo" accept="video/mp4,video/quicktime,video/webm,.mp4,.m4v,.mov,.webm" className="min-w-64 flex-1"
+                  error={errorOf(videoState)?.errors.pitchVideo} hint={`MP4, MOV or WebM, up to ${MAX_VIDEO_BYTES / 1024 / 1024} MB.`}
+                  onChange={(e) => { setPendingVideo(!!e.currentTarget.files?.length); setBlocked(""); }}
+                />
+                {pendingVideo && <Button type="submit" variant="brand" disabled={uploadingVideo}>{uploadingVideo ? "Uploading…" : "Upload"}</Button>}
+              </form>
+            )}
+            {!readOnly && app.video && (
+              <form action={removeAction}><Button type="submit" variant="ghost" disabled={removing}>{removing ? "Removing…" : "Remove video file"}</Button></form>
+            )}
+          </>
+        )}
+      </section>
+
+      {/* 4 — submit */}
+      {!readOnly && (
+        <section className={`space-y-3 rounded-card p-5 ${submitted ? "bg-mint-soft" : "bg-cream-soft"}`}>
+          <h3 className="font-display text-xl font-bold">4 · Submit</h3>
+          {submitted ? (
+            <p className="text-sm">
+              <strong className="text-brand">Submitted ✓</strong> on {fmt(app.submittedAt!)}. You can still change anything above until the deadline: just save or upload again, nothing needs re-submitting.
+            </p>
+          ) : (
+            <p className="text-sm text-muted">
+              {missing.length ? <>Still needed: <strong className="text-ink">{missing.join(", ")}</strong>.</> : "Everything is in. Submit when you're ready."}
+            </p>
+          )}
+          {!submitted && (
+            <Button type="submit" form="idea-details" name="intent" value="submit" disabled={submitting || missing.length > 0}>
+              {submitting ? "Submitting…" : "Submit idea"}
+            </Button>
+          )}
+        </section>
       )}
-    </form>
+    </div>
   );
 }
