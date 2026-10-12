@@ -35,10 +35,19 @@ case "$TARGET" in
   backend)
     IMG="$(image_for backend backend)"
     log "Deploy backend"
+    SECRETS="DATABASE_URL=gic-database-url:latest,GEVENTS_WEBHOOK_SECRETS=gic-webhook-secret:latest,INTERNAL_API_TOKEN=gic-internal-token:latest,ADMIN_API_TOKEN=gic-admin-token:latest,PAYMENT_LINK_KEY=gic-payment-link-key:latest"
+    ENVV="CLOUD_SQL_CONNECTION_NAME=${CONN}"
+    # Pitch decks go to Cloudflare R2 (folder "gic/") once the R2 secrets exist AND R2_PUBLIC_BASE_URL is given;
+    # otherwise decks stay in Postgres. R2_ACCOUNT_ID / R2_BUCKET_NAME are not secret.
+    if [ -n "${R2_PUBLIC_BASE_URL:-}" ] && $G secrets describe gic-r2-access-key-id >/dev/null 2>&1 && $G secrets describe gic-r2-secret-access-key >/dev/null 2>&1; then
+      SECRETS="${SECRETS},R2_ACCESS_KEY_ID=gic-r2-access-key-id:latest,R2_SECRET_ACCESS_KEY=gic-r2-secret-access-key:latest"
+      ENVV="^#^${ENVV}#R2_ACCOUNT_ID=${R2_ACCOUNT_ID:?set R2_ACCOUNT_ID}#R2_BUCKET_NAME=${R2_BUCKET_NAME:?set R2_BUCKET_NAME}#R2_PUBLIC_BASE_URL=${R2_PUBLIC_BASE_URL}#R2_PREFIX=gic"
+    else
+      echo "NOTE: R2 not configured (need R2_PUBLIC_BASE_URL + the gic-r2-* secrets): decks stay in Postgres"
+    fi
     $G run deploy gic-backend --image "$IMG" --region "$REGION" --service-account "$SA" \
       --allow-unauthenticated --port 8080 --memory 512Mi --cpu 1 --min-instances 0 --max-instances 5 \
-      --add-cloudsql-instances "$CONN" --set-env-vars "CLOUD_SQL_CONNECTION_NAME=${CONN}" \
-      --set-secrets "DATABASE_URL=gic-database-url:latest,GEVENTS_WEBHOOK_SECRETS=gic-webhook-secret:latest,INTERNAL_API_TOKEN=gic-internal-token:latest,ADMIN_API_TOKEN=gic-admin-token:latest,PAYMENT_LINK_KEY=gic-payment-link-key:latest"
+      --add-cloudsql-instances "$CONN" --set-env-vars "$ENVV" --set-secrets "$SECRETS"
     ;;
   frontend)
     IMG="$(image_for frontend . --ignore-file=.gcloudignore)"

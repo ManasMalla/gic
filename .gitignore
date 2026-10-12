@@ -43,3 +43,5 @@ next-env.d.ts
 
 # local registration data
 .data/
+backend/src/generated/
+backups/
