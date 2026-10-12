@@ -1,20 +1,27 @@
-import { sql } from "./db.ts";
+import { prisma } from "./db.ts";
 import { json } from "./http.ts";
 import { normalizeReference } from "./reference.ts";
 
 /** GET /api/admin/payments?status=needs_review,unmatched — payments a human must look at. */
 export async function listPayments(url: URL): Promise<Response> {
   const wanted = (url.searchParams.get("status") ?? "needs_review,unmatched").split(",");
-  const rows = await sql`
-    select pm.id, pm.event_type, pm.transaction_id, pm.match_status, pm.match_method, pm.flags, pm.amount, pm.currency,
-           pm.occurred_at, pm.reviewed_at, pm.review_note, a.reference as application_reference,
-           e.payload->'payer' as payer, e.payload->>'reference' as reported_reference
-    from payments pm
-    join payment_events e on e.event_id = pm.event_id
-    left join applications a on a.id = pm.application_id
-    where pm.match_status = any(${wanted}) and pm.reviewed_at is null
-    order by pm.occurred_at desc limit 200`;
-  return json({ payments: rows });
+  const rows = await prisma.payment.findMany({
+    where: { matchStatus: { in: wanted }, reviewedAt: null },
+    orderBy: { occurredAt: "desc" },
+    take: 200,
+    include: { event: { select: { payload: true } }, application: { select: { reference: true } } },
+  });
+  const payments = rows.map((pm) => {
+    const payload = (pm.event.payload ?? {}) as { payer?: unknown; reference?: unknown };
+    return {
+      id: pm.id, event_type: pm.eventType, transaction_id: pm.transactionId, match_status: pm.matchStatus,
+      match_method: pm.matchMethod, flags: pm.flags, amount: pm.amount, currency: pm.currency,
+      occurred_at: pm.occurredAt, reviewed_at: pm.reviewedAt, review_note: pm.reviewNote,
+      application_reference: pm.application?.reference ?? null,
+      payer: payload.payer ?? null, reported_reference: typeof payload.reference === "string" ? payload.reference : null,
+    };
+  });
+  return json({ payments });
 }
 
 /** POST /api/admin/payments/:id/assign {reference, note?} — a human decides which application this payment belongs to. */
@@ -23,26 +30,31 @@ export async function assignPayment(id: string, req: Request): Promise<Response>
   const reference = normalizeReference(body.reference);
   if (!reference) return json({ error: "invalid_reference" }, 400);
 
-  return await sql.begin(async (tx) => {
-    const [pm] = await tx`select * from payments where id = ${id} for update`;
+  return await prisma.$transaction(async (tx) => {
+    // Row locks so two reviewers (or a late webhook) cannot interleave on the same payment/application.
+    await tx.$queryRaw`select id from payments where id = ${id}::uuid for update`;
+    const pm = await tx.payment.findUnique({ where: { id } });
     if (!pm) return json({ error: "payment_not_found" }, 404);
-    const [app] = await tx`select * from applications where reference = ${reference} for update`;
+    await tx.$queryRaw`select id from applications where reference = ${reference} for update`;
+    const app = await tx.application.findUnique({ where: { reference } });
     if (!app) return json({ error: "application_not_found" }, 404);
 
-    await tx`update payments set application_id = ${app.id}, match_status = 'matched', match_method = 'manual',
-             reviewed_at = now(), review_note = ${body.note ?? null} where id = ${id}`;
-    if (pm.event_type === "payment.succeeded") {
-      await tx`update applications set status = 'paid', paid_at = ${pm.occurred_at} where id = ${app.id} and status = 'awaiting_payment'`;
-    } else if (pm.event_type === "payment.refunded") {
-      await tx`update applications set status = 'refunded' where id = ${app.id} and status = 'paid'`;
+    await tx.payment.update({
+      where: { id },
+      data: { applicationId: app.id, matchStatus: "matched", matchMethod: "manual", reviewedAt: new Date(), reviewNote: body.note ?? null },
+    });
+    if (pm.eventType === "payment.succeeded") {
+      await tx.application.updateMany({ where: { id: app.id, status: "awaiting_payment" }, data: { status: "paid", paidAt: pm.occurredAt } });
+    } else if (pm.eventType === "payment.refunded") {
+      await tx.application.updateMany({ where: { id: app.id, status: "paid" }, data: { status: "refunded" } });
     }
     return json({ ok: true, reference });
-  }) as Response;
+  });
 }
 
 /** POST /api/admin/payments/:id/dismiss {note} — acknowledged, no application (e.g. test payment, handled by refund). */
 export async function dismissPayment(id: string, req: Request): Promise<Response> {
   const body = await req.json().catch(() => ({})) as { note?: string };
-  const r = await sql`update payments set reviewed_at = now(), review_note = ${body.note ?? null} where id = ${id} returning id`;
-  return r.length ? json({ ok: true }) : json({ error: "payment_not_found" }, 404);
+  const r = await prisma.payment.updateMany({ where: { id }, data: { reviewedAt: new Date(), reviewNote: body.note ?? null } });
+  return r.count ? json({ ok: true }) : json({ error: "payment_not_found" }, 404);
 }

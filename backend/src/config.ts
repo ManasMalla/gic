@@ -23,11 +23,25 @@ export const config = {
   webhookDebugLog: (Deno.env.get("WEBHOOK_DEBUG_LOG") ?? "true") !== "false",
   /** Used by the Next.js server to call this API. */
   internalToken: required("INTERNAL_API_TOKEN"),
+  /**
+   * Cloudflare R2 (S3-compatible) for pitch decks, under the `gic/` folder. Optional: without it decks stay in Postgres.
+   * R2_PUBLIC_BASE_URL is where the bucket is publicly readable (r2.dev or a custom domain); the full URL of each deck is stored.
+   */
+  r2: (() => {
+    const accountId = Deno.env.get("R2_ACCOUNT_ID"), accessKeyId = Deno.env.get("R2_ACCESS_KEY_ID");
+    const secretAccessKey = Deno.env.get("R2_SECRET_ACCESS_KEY"), bucket = Deno.env.get("R2_BUCKET_NAME");
+    const publicBaseUrl = Deno.env.get("R2_PUBLIC_BASE_URL")?.replace(/\/+$/, "");
+    if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !publicBaseUrl) return null;
+    return { accountId, accessKeyId, secretAccessKey, bucket, publicBaseUrl, prefix: (Deno.env.get("R2_PREFIX") ?? "gic").replace(/^\/+|\/+$/g, "") };
+  })(),
+  /** Always super admins (can assign roles). Comma-separated. */
+  superAdminEmails: (Deno.env.get("SUPER_ADMIN_EMAILS") ?? "manas@theananta.in").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
   /** Used by organisers for the review queue. */
   adminToken: required("ADMIN_API_TOKEN"),
   /** Reject webhooks whose timestamp is further than this from now. */
   replayWindowSeconds: Number(Deno.env.get("WEBHOOK_REPLAY_WINDOW_SECONDS") ?? 300),
   maxDeckBytes: 10 * 1024 * 1024,
+  maxVideoBytes: 25 * 1024 * 1024,
   /** No NEW applications after this (existing ones can still pay). Env: REGISTRATION_DEADLINE (ISO-8601). */
   registrationDeadline: new Date(Deno.env.get("REGISTRATION_DEADLINE") ?? "2026-10-31T23:59:59+05:30"),
   /** Paid teams can edit their idea until this moment. Env: IDEA_EDIT_DEADLINE (ISO-8601). */

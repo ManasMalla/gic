@@ -1,0 +1,139 @@
+// Prisma describes the tables for the typed client. Check constraints and the partial indexes live in the
+// SQL migrations (prisma/migrations/*), which are the source of truth for the database.
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  runtime             = "deno"
+  moduleFormat        = "esm"
+  importFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Application {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference        String    @unique
+  track            String
+  teamName         String    @map("team_name")
+  institution      String
+  theme            String?
+  ideaTitle        String?   @map("idea_title")
+  pitchVideoLink   String?   @map("pitch_video_link")
+  data             Json
+  amountDue        Int       @map("amount_due")
+  status           String    @default("awaiting_payment")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  paidAt           DateTime? @map("paid_at") @db.Timestamptz(6)
+  ownerEmail       String?   @unique(map: "applications_owner_email_key") @map("owner_email")
+  problemStatement String?   @map("problem_statement")
+  ideaSummary      String?   @map("idea_summary")
+  ideaUpdatedAt    DateTime? @map("idea_updated_at") @db.Timestamptz(6)
+  referralCode     String?   @map("referral_code")
+  submittedAt      DateTime? @map("submitted_at") @db.Timestamptz(6)
+
+  @@index([referralCode], map: "applications_referral_code_idx")
+
+  contacts ApplicationContact[]
+  file     ApplicationFile?
+  video    ApplicationVideo?
+  payments Payment[]
+
+  @@map("applications")
+}
+
+/// One row per person on the team; used to match a payer to an application.
+model ApplicationContact {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  applicationId String      @map("application_id") @db.Uuid
+  role          String
+  email         String
+  phone         String      @default("")
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([email], map: "application_contacts_email_idx")
+  @@map("application_contacts")
+}
+
+model ApplicationFile {
+  applicationId String      @id @map("application_id") @db.Uuid
+  filename      String
+  contentType   String      @map("content_type")
+  size          Int
+  bytes         Bytes?
+  objectKey     String?     @map("object_key")
+  publicUrl     String?     @map("public_url")
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("application_files")
+}
+
+/// Every webhook we accept, as received (append-only audit log + idempotency key).
+model PaymentEvent {
+  eventId    String   @id @map("event_id")
+  eventType  String   @map("event_type")
+  receivedAt DateTime @default(now()) @map("received_at") @db.Timestamptz(6)
+  payload    Json
+  payment    Payment?
+
+  @@map("payment_events")
+}
+
+/// One row per event, with the outcome of matching it to an application.
+model Payment {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  eventId       String       @unique @map("event_id")
+  eventType     String       @map("event_type")
+  transactionId String?      @map("transaction_id")
+  applicationId String?      @map("application_id") @db.Uuid
+  matchStatus   String       @map("match_status")
+  matchMethod   String?      @map("match_method")
+  flags         String[]     @default([])
+  amount        Int?
+  currency      String?
+  occurredAt    DateTime     @map("occurred_at") @db.Timestamptz(6)
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  reviewedAt    DateTime?    @map("reviewed_at") @db.Timestamptz(6)
+  reviewNote    String?      @map("review_note")
+  event         PaymentEvent @relation(fields: [eventId], references: [eventId])
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  @@index([transactionId], map: "payments_txn_idx")
+  @@index([applicationId], map: "payments_app_idx")
+  @@map("payments")
+}
+
+/// Organisers who may sign in to /admin. Emails in SUPER_ADMIN_EMAILS are always super admins, whatever is stored here.
+model StaffUser {
+  email     String   @id
+  role      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?  @map("created_by")
+
+  @@map("staff_users")
+}
+
+model ReferralCode {
+  code      String   @id
+  label     String   @default("")
+  active    Boolean  @default(true)
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("referral_codes")
+}
+
+/// Optional pitch video file (R2). A team may instead (or also) give a link in applications.pitch_video_link.
+model ApplicationVideo {
+  applicationId String      @id @map("application_id") @db.Uuid
+  filename      String
+  contentType   String      @map("content_type")
+  size          Int
+  objectKey     String      @map("object_key")
+  publicUrl     String      @map("public_url")
+  uploadedAt    DateTime    @default(now()) @map("uploaded_at") @db.Timestamptz(6)
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("application_videos")
+}

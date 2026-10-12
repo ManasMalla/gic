@@ -20,6 +20,7 @@ const optionalPerson = z.object({
 export const teamSchema = z.object({
   track: z.enum(["junior", "main"]),
   teamName: text(100),
+  referralCode: z.string().trim().max(30).regex(/^[A-Za-z0-9_-]*$/).optional(),
   institution: text(150),
   address: text(200),
   cityState: text(100),
@@ -40,7 +41,8 @@ export const ideaSchema = z.object({
   ideaTitle: text(150),
   problemStatement: text(300),
   ideaSummary: text(600),
-  pitchVideoLink: z.string().trim().max(255).pipe(z.url()),
+  // A link OR an uploaded video file is required to SUBMIT (checked in submitIdea); the file lives in its own table.
+  pitchVideoLink: z.union([z.literal(""), z.string().trim().max(255).pipe(z.url())]).optional(), // omitted = leave the saved link alone
 });
 export type IdeaInput = z.infer<typeof ideaSchema>;
 

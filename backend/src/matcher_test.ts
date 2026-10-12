@@ -76,3 +76,25 @@ Deno.test("a reference that was sent but is malformed/unknown is still flagged w
   assertEquals(decide(input({ referenceProvided: true, reference: null })).flags, ["reference_invalid", "no_candidate"]);
   assertEquals(decide(input({ referenceProvided: true, reference: "GIC26-AAAAAAAA-0" })).flags, ["reference_not_found", "no_candidate"]);
 });
+
+Deno.test("GEvents reports fee + 18% GST (₹499.14 / ₹698.56): that is the right fee, not a mismatch", () => {
+  const j = decide(input({ byFounderEmail: [app()], amount: 49_914 }));
+  assertEquals([j.status, j.method, j.flags], ["matched", "founder_email", []]);
+  const m = decide(input({ track: "main", byFounderEmail: [app({ track: "main", amountDue: 69_900 })], amount: 69_856 }));
+  assertEquals([m.status, m.flags], ["matched", []]);
+  // GITAM-domain payers are charged ₹592 for Main (the fee without GST)
+  const g = decide(input({ track: "main", byFounderEmail: [app({ track: "main", amountDue: 69_900 })], amount: 59_200 }));
+  assertEquals([g.status, g.flags], ["matched", []]);
+  // still never accepts the other track's fee or a random amount
+  assertEquals(decide(input({ byFounderEmail: [app()], amount: 69_856 })).status, "unmatched");
+  assertEquals(decide(input({ byFounderEmail: [app()], amount: 100 })).status, "unmatched");
+  assertEquals(decide(input({ byFounderEmail: [app()], amount: 59_200 })).status, "unmatched"); // ₹592 is a Main fee, not Junior
+});
+
+Deno.test("amount is a range check, not an exact list: GST, no-GST (GITAM) and advertised prices all pass; tests and the other track's fee do not", () => {
+  const ok = (track: "junior" | "main", amount: number) => decide(input({ track, byFounderEmail: [app({ track, amountDue: track === "main" ? 69_900 : 49_900 })], amount })).status;
+  for (const a of [42_300, 45_000, 49_900, 49_914]) assertEquals(ok("junior", a), "matched", String(a));
+  for (const a of [59_200, 65_000, 69_856, 69_900]) assertEquals(ok("main", a), "matched", String(a));
+  for (const a of [100, 10_000, 42_299, 49_915, 69_901, 100_000]) assertEquals(ok("main", a), "unmatched", String(a)); // not Main money
+  for (const a of [100, 10_000, 42_299, 49_915, 59_200, 69_900]) assertEquals(ok("junior", a), "unmatched", String(a)); // not Junior money
+});

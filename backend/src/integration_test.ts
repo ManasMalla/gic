@@ -2,7 +2,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { route } from "./main.ts";
 import { config } from "./config.ts";
-import { migrate, sql } from "./db.ts";
+import { migrate, prisma } from "./db.ts";
 import { signForTest } from "./signature.ts";
 import { encryptPaymentLink } from "./paylink.ts";
 
@@ -36,6 +36,12 @@ function ideaForm(data: unknown, deck = true) {
   return fd;
 }
 const saveIdea = (email: string, fd: FormData) => run("/api/me/idea", { method: "PUT", headers: as(email), body: fd });
+const saveDeck = (email: string, bytes = 1024, name = "deck.pdf") => {
+  const fd = new FormData();
+  fd.set("pitchDeck", new File([new Uint8Array(bytes)], name, { type: "application/pdf" }));
+  return run("/api/me/deck", { method: "PUT", headers: as(email), body: fd });
+};
+const submit = (email: string) => run("/api/me/submit", { method: "POST", headers: as(email) });
 const me = (email: string) => run("/api/me/application", { headers: as(email) });
 const status = async (ref: string) => (await (await run(`/api/applications/${ref}`, { headers: INTERNAL })).json()).status as string;
 
@@ -181,18 +187,26 @@ Deno.test({
       assertEquals((await (await me(email)).json()).canEditIdea, true);
 
       assertEquals((await saveIdea(email, ideaForm(idea({ theme: "not-a-theme" })))).status, 422);
-      const noDeck = await saveIdea(email, ideaForm(idea(), false));
-      assertEquals(noDeck.status, 422);
-      assertEquals((await noDeck.json()).errors.pitchDeck, "required");
-
-      const saved = await saveIdea(email, ideaForm(idea({ ideaTitle: "First title" })));
+      // 1) details only: fine without a deck, but the team is not complete and cannot submit yet
+      const saved = await saveIdea(email, ideaForm(idea({ ideaTitle: "First title" }), false));
       assertEquals(saved.status, 200);
-      const s1 = await saved.json();
-      assertEquals([s1.idea.ideaTitle, s1.deck.filename, s1.ideaComplete], ["First title", "deck.pdf", true]);
+      const s0 = await saved.json();
+      assertEquals([s0.idea.ideaTitle, s0.deck, s0.ideaComplete, s0.submittedAt], ["First title", null, false, null]);
+      const early = await submit(email);
+      assertEquals([early.status, (await early.json()).errors.pitchDeck], [422, "Upload your pitch deck"]);
 
-      // Edit again WITHOUT re-uploading: text changes, the stored deck is kept.
+      // 2) deck, saved on its own (type and size are checked)
+      assertEquals((await saveDeck(email, 1024, "notes.txt")).status, 422);
+      const withDeck = await (await saveDeck(email)).json();
+      assertEquals([withDeck.deck.filename, withDeck.ideaComplete, withDeck.submittedAt], ["deck.pdf", true, null]);
+
+      // 3) final submit
+      const done = await (await submit(email)).json();
+      assert(done.submittedAt);
+
+      // Editing afterwards keeps it submitted; the stored deck is kept.
       const edited = await (await saveIdea(email, ideaForm(idea({ ideaTitle: "Second title" }), false))).json();
-      assertEquals([edited.idea.ideaTitle, edited.deck.filename], ["Second title", "deck.pdf"]);
+      assertEquals([edited.idea.ideaTitle, edited.deck.filename, !!edited.submittedAt], ["Second title", "deck.pdf", true]);
 
       const original = config.ideaEditDeadline;
       config.ideaEditDeadline = new Date(Date.now() - 1000);
@@ -200,6 +214,8 @@ Deno.test({
         const late = await saveIdea(email, ideaForm(idea({ ideaTitle: "Too late" })));
         assertEquals(late.status, 403);
         assertEquals((await late.json()).error, "deadline_passed");
+        assertEquals((await submit(email)).status, 403);
+        assertEquals((await saveDeck(email)).status, 403);
         const view = await (await me(email)).json();
         assertEquals([view.canEditIdea, view.idea.ideaTitle], [false, "Second title"]);
       } finally {
@@ -324,8 +340,8 @@ Deno.test({
       const out = await res.json();
       assertEquals([res.status, out.match, out.flags], [200, "unmatched", ["no_candidate"]]);
       // the order id was used as the transaction id, so a later refund can follow it
-      const [row] = await sql`select transaction_id from payments where event_id = ${`evt_real_${tag}`}`;
-      assertEquals(row.transaction_id, `437796${tag}`);
+      const row = await prisma.payment.findUniqueOrThrow({ where: { eventId: `evt_real_${tag}` } });
+      assertEquals(row.transactionId, `437796${tag}`);
     });
 
     await t.step("a wrongly-signed call is logged with a one-line `message` and a diagnosis of the mistake", async () => {
@@ -354,6 +370,133 @@ Deno.test({
       assert(check.diagnosis.some((d: string) => d.includes("body only")));
     });
 
-    await sql.end();
+    await t.step("GEvents' own track names decide the track: a Main payer is not matched to a Junior team", async () => {
+      const payer = `trk-${tag}@example.com`;
+      const ref = await create("junior", payer);
+      const wrong = await webhook({ payer: { email: payer }, registration: { track: "Main Track UG Current Students and 2025 Passouts" }, payment: { transaction_id: `txn_trk1_${tag}`, amount: 69856, currency: "INR" } });
+      assertEquals([wrong.out.match, await status(ref)], ["unmatched", "awaiting_payment"]);
+      const right = await webhook({ payer: { email: payer }, registration: { track: "Junior Track School students Class 10 12" }, payment: { transaction_id: `txn_trk2_${tag}`, amount: 49914, currency: "INR" } });
+      assertEquals([right.out.match, await status(ref)], ["matched", "paid"]);
+    });
+
+    await t.step("an unmatched payment from my own email is visible to me (so the site can show Pay now as already done)", async () => {
+      const email = `paidfirst-${tag}@example.com`;
+      assertEquals((await run("/api/me/payment", { headers: as(email) }).then((r) => r.json())).pending, null);
+      await webhook({ payer: { email: email.toUpperCase() }, registration: { track: "main" }, payment: { transaction_id: `txn_pf_${tag}`, amount: 59200, currency: "INR" } });
+      const seen = await run("/api/me/payment", { headers: as(email) }).then((r) => r.json());
+      assertEquals([seen.pending.amount, typeof seen.pending.occurredAt], [59200, "string"]);
+      assertEquals((await run("/api/me/payment", { headers: as(`other-${tag}@example.com`) }).then((r) => r.json())).pending, null);
+    });
+
+    await t.step("a payment that arrives BEFORE the team registers is matched when the team registers (real GEvents amount incl. GST)", async () => {
+      const payer = `early-${tag}@example.com`;
+      const early = await webhook({ payer: { email: payer, name: "Early Bird" }, registration: { track: "Junior Track School students Class 10 12" }, payment: { transaction_id: `txn_early_${tag}`, amount: 49914, currency: "INR" } });
+      assertEquals([early.out.match, early.out.flags], ["unmatched", ["no_candidate"]]); // nobody to match yet
+      const ref = await create("junior", payer);
+      assertEquals(await status(ref), "paid"); // picked up at registration
+      const row = await prisma.payment.findUniqueOrThrow({ where: { eventId: early.event.event_id } });
+      assertEquals([row.matchStatus, row.matchMethod, row.reviewNote], ["matched", "founder_email", "auto-matched after the team registered"]);
+
+      // the manual "re-run matching" button does the same for payments stranded before this fix
+      const late = `stranded-${tag}@example.com`;
+      const w2 = await webhook({ payer: { email: late }, registration: { track: "main" }, payment: { transaction_id: `txn_late_${tag}`, amount: 69856, currency: "INR" } });
+      assertEquals(w2.out.match, "unmatched");
+      const ra = await prisma.application.create({
+        data: { reference: `GIC26-ZZZZZZZZ-${tag.slice(0, 1)}`, ownerEmail: late, track: "main", teamName: "Late", institution: "X", data: {}, amountDue: 69900,
+                contacts: { create: [{ role: "owner", email: late }, { role: "founder", email: late }] } },
+      });
+      const rec = await run("/api/staff/payments/reconcile", { method: "POST", headers: { ...as(config.superAdminEmails[0]) } }).then((r) => r.json());
+      assert(rec.matched >= 1, JSON.stringify(rec));
+      assertEquals((await prisma.application.findUniqueOrThrow({ where: { id: ra.id } })).status, "paid");
+    });
+
+    await t.step("Lead/Co-lead can edit; other listed members see the team and deck read-only", async () => {
+      const owner = `own-${tag}@example.com`, colead = `co-${owner}`, member = `m3-${tag}@example.com`, stranger = `str-${tag}@example.com`;
+      const ref = await create("junior", owner);
+      const w = await webhook({ payer: { email: owner }, registration: { track: "junior" } });
+      assertEquals(w.out.match, "matched");
+      assertEquals((await saveIdea(owner, ideaForm(idea()))).status, 200);
+      assertEquals((await saveDeck(owner)).status, 200);
+      const app = await prisma.application.findUniqueOrThrow({ where: { reference: ref } });
+      await prisma.applicationContact.create({ data: { applicationId: app.id, role: "member3", email: member } });
+
+      // Co-lead (not the registering account) can edit
+      const co = await me(colead).then((r) => r.json());
+      assertEquals([co.reference, co.viewerRole, co.canEditIdea], [ref, "lead", true]);
+      assert(co.members.some((m: { role: string; email: string }) => m.role === "Co-lead" && m.email === colead));
+      assertEquals((await saveIdea(colead, ideaForm(idea({ ideaTitle: "Edited by co-lead" }), false))).status, 200);
+      assertEquals((await me(owner).then((r) => r.json())).idea.ideaTitle, "Edited by co-lead");
+
+      // Member 3: can look, download the deck, cannot edit
+      const m3 = await me(member).then((r) => r.json());
+      assertEquals([m3.viewerRole, m3.canEditIdea, m3.ownerEmail], ["member", false, owner]);
+      const deck = await run("/api/me/deck", { headers: as(member) });
+      assertEquals([deck.status, (await deck.arrayBuffer()).byteLength], [200, 1024]);
+      assertEquals((await saveIdea(member, ideaForm(idea({ ideaTitle: "hijack" }), false))).status, 403);
+      assertEquals((await me(owner).then((r) => r.json())).viewerRole, "owner");
+      assertEquals((await me(stranger)).status, 404);
+      assertEquals((await run("/api/me/deck", { headers: as(stranger) })).status, 404);
+    });
+
+    await t.step("staff RBAC: super admin assigns roles; core sees only per-track counts; admin does CRUD", async () => {
+      const staff = (email: string, path: string, init: RequestInit = {}) =>
+        run(path, { ...init, headers: { ...as(email), "content-type": "application/json", ...init.headers } });
+      const SUPER = config.superAdminEmails[0];
+      const admin = `admin-${tag}@example.com`, core = `core-${tag}@example.com`, nobody = `nobody-${tag}@example.com`;
+
+      assertEquals((await staff(nobody, "/api/staff/me")).status, 403); // not staff
+      assertEquals((await staff(admin, "/api/staff/me")).status, 403); // not yet a role
+      assertEquals((await staff(SUPER, "/api/staff/me").then((r) => r.json())).role, "super_admin");
+
+      // only a super admin can assign roles
+      for (const [who, role] of [[admin, "admin"], [core, "core"]] as const) {
+        assertEquals((await staff(SUPER, "/api/staff/users", { method: "PUT", body: JSON.stringify({ email: who, role }) })).status, 200);
+      }
+      assertEquals((await staff(admin, "/api/staff/users", { method: "PUT", body: JSON.stringify({ email: nobody, role: "admin" }) })).status, 403);
+      assertEquals((await staff(core, "/api/staff/users")).status, 403);
+      assertEquals((await staff(SUPER, `/api/staff/users/${encodeURIComponent(SUPER)}`, { method: "DELETE" })).status, 409); // locked
+
+      // core: can create a code, sees only its own (no usage numbers) and only per-track counts
+      const made = await staff(core, "/api/staff/referrals", { method: "POST", body: JSON.stringify({ label: "Core " + tag }) });
+      assertEquals(made.status, 201);
+      const code = (await made.json()).code as string;
+      assert(/^GIC-[A-Z2-9]{6}$/.test(code), code);
+      const coreStats = await staff(core, "/api/staff/stats").then((r) => r.json());
+      assertEquals(Object.keys(coreStats), ["perTrack"]);
+      const coreCodes = (await staff(core, "/api/staff/referrals").then((r) => r.json())).codes;
+      assert(coreCodes.some((c: { code: string }) => c.code === code) && !("registrations" in coreCodes[0]));
+      for (const path of ["/api/staff/applications", "/api/staff/users"]) assertEquals((await staff(core, path)).status, 403);
+      assertEquals((await staff(core, `/api/staff/referrals/${code}`, { method: "DELETE" })).status, 403);
+
+      // a registration with the code stores it; an unknown one is rejected
+      const owner = `ref-${tag}@example.com`;
+      const reg = (c: string) => run("/api/applications", { method: "POST", headers: { ...as(owner), "content-type": "application/json" }, body: JSON.stringify({ ...teamData("junior", owner), referralCode: c }) });
+      const bad = await reg("NOPE-123");
+      assertEquals([bad.status, (await bad.json()).errors.referralCode], [422, "This referral code isn't valid"]);
+      const ok = await reg(code.toLowerCase());
+      assertEquals(ok.status, 201);
+      const ref = (await ok.json()).reference as string;
+
+      // admin: full stats, usage counts, application CRUD
+      const full = await staff(admin, "/api/staff/stats").then((r) => r.json());
+      assert(full.total >= 1 && full.referrals.some((r: { code: string; registrations: number }) => r.code === code && r.registrations === 1));
+      const usage = (await staff(admin, "/api/staff/referrals").then((r) => r.json())).codes.find((c: { code: string }) => c.code === code);
+      assertEquals([usage.registrations, usage.paid], [1, 0]);
+      const list = await staff(admin, `/api/staff/applications?referral=${code}`).then((r) => r.json());
+      assertEquals(list.total, 1);
+      assertEquals((await staff(admin, `/api/staff/applications/${ref}`, { method: "PATCH", body: JSON.stringify({ teamName: "Renamed " + tag, status: "paid" }) })).status, 200);
+      const one = await staff(admin, `/api/staff/applications/${ref}`).then((r) => r.json());
+      assertEquals([one.teamName, one.status, one.referralCode, !!one.paidAt], ["Renamed " + tag, "paid", code, true]);
+      assertEquals((await staff(admin, `/api/staff/referrals/${code}`, { method: "PATCH", body: JSON.stringify({ active: false }) })).status, 200);
+      assertEquals((await reg(code)).status, 422); // a deactivated code is refused
+      assertEquals((await staff(admin, `/api/staff/applications/${ref}`, { method: "DELETE" })).status, 200);
+      assertEquals((await staff(admin, `/api/staff/applications/${ref}`)).status, 404);
+      assertEquals((await staff(admin, `/api/staff/referrals/${code}`, { method: "DELETE" })).status, 200);
+      assertEquals((await staff(SUPER, `/api/staff/users/${encodeURIComponent(core)}`, { method: "DELETE" })).status, 200);
+      assertEquals((await staff(core, "/api/staff/me")).status, 403); // revoked immediately
+      await staff(SUPER, `/api/staff/users/${encodeURIComponent(admin)}`, { method: "DELETE" });
+    });
+
+    await prisma.$disconnect();
   },
 });

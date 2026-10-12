@@ -1,4 +1,4 @@
-import { FEES_PAISE, type Track } from "./fees.ts";
+import { feeMatches, type Track } from "./fees.ts";
 
 export type AppRow = { id: string; reference: string; track: Track; status: "awaiting_payment" | "paid" | "refunded"; amountDue: number };
 
@@ -59,7 +59,7 @@ export function decide(i: MatchInput): MatchResult {
     if (i.referenceProvided) flags.push(i.reference ? "reference_not_found" : "reference_invalid");
 
     if (i.eventType === "payment.succeeded") {
-      const fits = (a: AppRow) => a.status === "awaiting_payment" && (i.track === null || a.track === i.track) && a.amountDue === i.amount;
+      const fits = (a: AppRow) => a.status === "awaiting_payment" && (i.track === null || a.track === i.track) && feeMatches(a.track, i.amount);
       const founder = i.byFounderEmail.filter(fits);
       const anyone = i.byEmail.filter(fits);
 
@@ -89,7 +89,7 @@ export function decide(i: MatchInput): MatchResult {
 
   // Sanity checks on a match, only meaningful for money coming in.
   if (i.eventType === "payment.succeeded") {
-    if (i.amount !== null && i.amount !== FEES_PAISE[app.track]) flags.push("amount_mismatch");
+    if (i.amount !== null && !feeMatches(app.track, i.amount)) flags.push("amount_mismatch");
     if (i.track !== null && i.track !== app.track) flags.push("track_mismatch");
     if (app.status === "paid") flags.push("already_paid");
   }

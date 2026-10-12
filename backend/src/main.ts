@@ -1,8 +1,9 @@
 import { dismissPayment, assignPayment, listPayments } from "./admin.ts";
-import { createApplication, getApplicationStatus, getMyApplication, saveIdea } from "./applications.ts";
+import { createApplication, downloadMyDeck, getApplicationStatus, getMyApplication, getMyPendingPayment, removeVideo, saveDeck, saveIdea, saveVideo, submitIdea } from "./applications.ts";
 import { config } from "./config.ts";
-import { migrate, sql } from "./db.ts";
+import { migrate, prisma } from "./db.ts";
 import { json } from "./http.ts";
+import { handleStaff } from "./staff.ts";
 import { safeEqual } from "./signature.ts";
 import { handleGeventsWebhook } from "./webhook.ts";
 
@@ -16,7 +17,7 @@ export async function route(req: Request): Promise<Response> {
 
   // NB: Cloud Run reserves /healthz on *.run.app URLs (Google answers it), so expose /api/health as well.
   if (path === "/healthz" || path === "/api/health") {
-    await sql`select 1`;
+    await prisma.$queryRaw`select 1`;
     return json({ ok: true });
   }
 
@@ -25,7 +26,7 @@ export async function route(req: Request): Promise<Response> {
 
   // Called only by our Next.js server. It has already verified the user's Google identity and passes
   // the verified email in `x-user-email`; the internal token proves the call really comes from our server.
-  if (path.startsWith("/api/applications") || path.startsWith("/api/me/")) {
+  if (path.startsWith("/api/applications") || path.startsWith("/api/me/") || path.startsWith("/api/staff/")) {
     if (!authed(req.headers.get("x-internal-token") ?? "", config.internalToken)) return json({ error: "unauthorized" }, 401);
 
     const mm = path.match(/^\/api\/applications\/([^/]+)$/);
@@ -34,8 +35,15 @@ export async function route(req: Request): Promise<Response> {
     const email = (req.headers.get("x-user-email") ?? "").trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "user_required" }, 401);
 
+    if (path.startsWith("/api/staff/")) return handleStaff(req, url, email);
     if (m === "POST" && path === "/api/applications") return createApplication(req, email);
     if (m === "GET" && path === "/api/me/application") return getMyApplication(email);
+    if (m === "GET" && path === "/api/me/payment") return getMyPendingPayment(email);
+    if (m === "GET" && path === "/api/me/deck") return downloadMyDeck(email);
+    if (m === "PUT" && path === "/api/me/deck") return saveDeck(req, email);
+    if (m === "POST" && path === "/api/me/submit") return submitIdea(email);
+    if (m === "PUT" && path === "/api/me/video") return saveVideo(req, email);
+    if (m === "DELETE" && path === "/api/me/video") return removeVideo(email);
     if (m === "PUT" && path === "/api/me/idea") return saveIdea(req, email);
   }
 
