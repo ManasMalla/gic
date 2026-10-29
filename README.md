@@ -53,9 +53,9 @@ Design tokens (colours, fonts, radii) are in `src/app/globals.css` under `@theme
 4. **Pay on GEvents** (`/register/payment`). We pass `?ref=…&track=…`; GEvents calls our webhook when paid.
 5. **`/register/payment-status`** polls until the webhook lands (also shows failed / refunded).
 6. **Portal** (`/portal`) opens only once paid: choose a theme, write the idea, upload the deck + video link.
-   Editable any number of times until `IDEA_EDIT_DEADLINE` (default 31 Oct 2026 23:59 IST), then read-only.
+   Editable any number of times until `IDEA_EDIT_DEADLINE` (default 5 Nov 2026 23:59 IST), then read-only.
 
-New applications stop at `REGISTRATION_DEADLINE` (default 31 Oct 2026 23:59 IST). Both are backend env vars.
+New applications stop at `REGISTRATION_DEADLINE` (default 5 Nov 2026 23:59 IST). Both are backend env vars.
 
 ## Architecture
 

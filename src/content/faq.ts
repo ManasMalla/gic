@@ -145,7 +145,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "How can I register?",
         "a": [
-          "Register through the official portal: [Register for GIC 2026](/register). It takes four steps: 1) register your team, 2) submit your idea (details, pitch deck and video) in the team portal, 3) pay the registration fee on GEvents, 4) edit your submission any time until 31 October 2026. Payment is the last step: your entry is confirmed once it goes through."
+          "Register through the official portal: [Register for GIC 2026](/register). It takes four steps: 1) register your team, 2) submit your idea (details, pitch deck and video) in the team portal, 3) pay the registration fee on GEvents, 4) edit your submission any time until 5 November 2026. Payment is the last step: your entry is confirmed once it goes through."
         ]
       },
       {
@@ -199,13 +199,13 @@ export const faq: FaqGroup[] = [
       {
         "q": "What happens after registration?",
         "a": [
-          "Registration and Round 1 screening (deadline 31 October; results 2 November) → virtual bootcamp with a personal mentor (9–11 November) → Round 2 pitch deck (due 15 November; results 18 November) → online semi-finals (20 November for the Senior Track, 21 November for the Junior Track) → Grand Finale at GITAM Hyderabad on 11 December. Both tracks follow the same stages; only the semi-final dates differ."
+          "Registration and Round 1 screening (deadline and results both on 5 November) → virtual bootcamp with a personal mentor (9–11 November) → Round 2 pitch deck (due 15 November; results 18 November) → online semi-finals (20 November for the Senior Track, 21 November for the Junior Track) → Grand Finale at GITAM Hyderabad on 11 December. Both tracks follow the same stages; only the semi-final dates differ."
         ]
       },
       {
         "q": "How are teams shortlisted?",
         "a": [
-          "Submissions are reviewed by a jury based on factors such as the quality of the idea, relevance, completeness and quality of thinking. Round 1 results are announced on 2 November 2026, and the top 200 teams advance (100 from each track). After Round 2, the top 40 teams in each track go to the semi-finals."
+          "Submissions are reviewed by a jury based on factors such as the quality of the idea, relevance, completeness and quality of thinking. Round 1 results are announced on 5 November 2026, and the top 200 teams advance (100 from each track). After Round 2, the top 40 teams in each track go to the semi-finals."
         ]
       },
       {

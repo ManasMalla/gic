@@ -43,7 +43,7 @@ export const config = {
   maxDeckBytes: 10 * 1024 * 1024,
   maxVideoBytes: 25 * 1024 * 1024,
   /** No NEW applications after this (existing ones can still pay). Env: REGISTRATION_DEADLINE (ISO-8601). */
-  registrationDeadline: new Date(Deno.env.get("REGISTRATION_DEADLINE") ?? "2026-10-31T23:59:59+05:30"),
+  registrationDeadline: new Date(Deno.env.get("REGISTRATION_DEADLINE") ?? "2026-11-05T23:59:59+05:30"),
   /** Paid teams can edit their idea until this moment. Env: IDEA_EDIT_DEADLINE (ISO-8601). */
-  ideaEditDeadline: new Date(Deno.env.get("IDEA_EDIT_DEADLINE") ?? "2026-10-31T23:59:59+05:30"),
+  ideaEditDeadline: new Date(Deno.env.get("IDEA_EDIT_DEADLINE") ?? "2026-11-05T23:59:59+05:30"),
 };

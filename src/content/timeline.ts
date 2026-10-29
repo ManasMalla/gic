@@ -9,8 +9,8 @@ export type Milestone = {
 
 export const timeline: Milestone[] = [
   { stage: "Registration", title: "Registration Opens", date: "05 August, 2026" },
-  { stage: "Registration", title: "Registration & Submission Deadline", date: "31 October, 2026", badge: "Extended", note: "Last day to register and submit your idea" },
-  { stage: "Round 1", title: "Round 1 Results", date: "02 November, 2026", note: "Top 200 teams advance: 100 Senior Track + 100 Junior Track" },
+  { stage: "Registration", title: "Registration & Submission Deadline", date: "05 November, 2026", badge: "Extended", note: "Last day to register and submit your idea" },
+  { stage: "Round 1", title: "Round 1 Results", date: "05 November, 2026", note: "Announced the same day · top 200 teams advance: 100 Senior Track + 100 Junior Track" },
   { stage: "Round 2", title: "Virtual Bootcamp & Mentoring", date: "09–11 November, 2026", note: "Online · every advancing team gets a personal mentor" },
   { stage: "Round 2", title: "Round 2 Pitch Deck Deadline", date: "15 November, 2026", note: "11:59 PM IST" },
   { stage: "Round 2", title: "Round 2 Results", date: "18 November, 2026", note: "Top 80 teams advance: 40 Senior Track + 40 Junior Track" },

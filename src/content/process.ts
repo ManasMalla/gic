@@ -5,7 +5,7 @@ const round1: ProcessStep = {
   title: "Round 1: Screening",
   body: [
     "A jury reviews every submission for completeness, relevance and quality of thinking.",
-    "Final submission deadline: 31 October 2026. Results are announced on 2 November 2026.",
+    "Final submission deadline: 5 November 2026. Results are announced the same day.",
     "Top 200 teams advance: 100 from the Senior Track and 100 from the Junior Track.",
   ],
 };
@@ -48,7 +48,7 @@ export const process: ProcessGroup[] = [
         body: [
           "Sign in with Google at gic.gitam.edu/register and add your team and members.",
           "Senior Track: 2–6 members. Junior Track: 2–4 members. The Lead and Co-Lead are the primary participants.",
-          "Registration window: 5 August – 31 October 2026.",
+          "Registration window: 5 August – 5 November 2026.",
         ],
       },
       {
@@ -70,9 +70,9 @@ export const process: ProcessGroup[] = [
       {
         title: "Edit until the deadline",
         body: [
-          "You can change your idea, deck and video any time until 31 October 2026, 11:59 PM IST.",
+          "You can change your idea, deck and video any time until 5 November 2026, 11:59 PM IST.",
           "The Lead and Co-Lead can edit; every listed member can view the team's submission.",
-          "Round 1 results are announced on 2 November 2026.",
+          "Round 1 results are announced on 5 November 2026.",
         ],
       },
     ],
