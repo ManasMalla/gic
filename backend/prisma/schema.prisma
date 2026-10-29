@@ -137,3 +137,12 @@ model ApplicationVideo {
 
   @@map("application_videos")
 }
+
+/// The referral code a Google account arrived with (link: /?utm=CODE). First valid code wins.
+model AccountReferral {
+  email     String   @id
+  code      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("account_referrals")
+}

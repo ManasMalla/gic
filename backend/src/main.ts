@@ -1,5 +1,5 @@
 import { dismissPayment, assignPayment, listPayments } from "./admin.ts";
-import { createApplication, downloadMyDeck, getApplicationStatus, getMyApplication, getMyPendingPayment, removeVideo, saveDeck, saveIdea, saveVideo, submitIdea } from "./applications.ts";
+import { createApplication, downloadMyDeck, getApplicationStatus, getMyApplication, getMyPendingPayment, getMyReferral, setMyReferral, removeVideo, saveDeck, saveIdea, saveVideo, submitIdea } from "./applications.ts";
 import { config } from "./config.ts";
 import { migrate, prisma } from "./db.ts";
 import { json } from "./http.ts";
@@ -38,6 +38,8 @@ export async function route(req: Request): Promise<Response> {
     if (path.startsWith("/api/staff/")) return handleStaff(req, url, email);
     if (m === "POST" && path === "/api/applications") return createApplication(req, email);
     if (m === "GET" && path === "/api/me/application") return getMyApplication(email);
+    if (m === "GET" && path === "/api/me/referral") return getMyReferral(email);
+    if (m === "PUT" && path === "/api/me/referral") return setMyReferral(req, email);
     if (m === "GET" && path === "/api/me/payment") return getMyPendingPayment(email);
     if (m === "GET" && path === "/api/me/deck") return downloadMyDeck(email);
     if (m === "PUT" && path === "/api/me/deck") return saveDeck(req, email);

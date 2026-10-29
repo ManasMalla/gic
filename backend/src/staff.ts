@@ -119,11 +119,15 @@ async function stats(role: Role): Promise<Response> {
   ]);
   const paidByCode = await prisma.application.groupBy({ by: ["referralCode"], where: { referralCode: { not: null }, status: "paid" }, _count: { _all: true } });
   const paid = new Map(paidByCode.map((r) => [r.referralCode, r._count._all]));
+  const linkedByCode = await prisma.accountReferral.groupBy({ by: ["code"], _count: { _all: true } });
+  const reg = new Map(byCode.map((r) => [r.referralCode as string, r._count._all]));
+  const codesSeen = [...new Set([...reg.keys(), ...linkedByCode.map((r) => r.code)])];
   return json({
     perTrack,
     byStatus: byStatus.map((r) => ({ track: r.track, status: r.status, count: r._count._all })),
     total: byTrack.reduce((n, r) => n + r._count._all, 0),
-    referrals: byCode.map((r) => ({ code: r.referralCode, registrations: r._count._all, paid: paid.get(r.referralCode) ?? 0 })),
+    // Every code with any reach: people who opened the link and signed in ("accounts") and teams that registered with it.
+    referrals: codesSeen.map((code) => ({ code, accounts: linkedByCode.find((r) => r.code === code)?._count._all ?? 0, registrations: reg.get(code) ?? 0, paid: paid.get(code) ?? 0 })),
     paymentsNeedingReview: unmatched,
   });
 }
@@ -161,14 +165,16 @@ async function listReferrals(role: Role, email: string): Promise<Response> {
     const own = await prisma.referralCode.findMany({ where: { createdBy: email }, orderBy: { createdAt: "desc" } });
     return json({ codes: own.map((c) => ({ code: c.code, label: c.label, active: c.active, createdAt: c.createdAt })) });
   }
-  const [codes, used, paid] = await Promise.all([
+  const [codes, used, paid, linked] = await Promise.all([
     prisma.referralCode.findMany({ orderBy: { createdAt: "desc" } }),
     prisma.application.groupBy({ by: ["referralCode"], where: { referralCode: { not: null } }, _count: { _all: true } }),
     prisma.application.groupBy({ by: ["referralCode"], where: { referralCode: { not: null }, status: "paid" }, _count: { _all: true } }),
+    prisma.accountReferral.groupBy({ by: ["code"], _count: { _all: true } }),
   ]);
+  const l = new Map(linked.map((r) => [r.code, r._count._all]));
   const u = new Map(used.map((r) => [r.referralCode, r._count._all]));
   const p = new Map(paid.map((r) => [r.referralCode, r._count._all]));
-  return json({ codes: codes.map((c) => ({ ...c, registrations: u.get(c.code) ?? 0, paid: p.get(c.code) ?? 0 })) });
+  return json({ codes: codes.map((c) => ({ ...c, accounts: l.get(c.code) ?? 0, registrations: u.get(c.code) ?? 0, paid: p.get(c.code) ?? 0 })) });
 }
 
 async function updateReferral(code: string, raw: unknown): Promise<Response> {
@@ -190,11 +196,28 @@ async function listApplications(url: URL): Promise<Response> {
   const track = url.searchParams.get("track");
   const status = url.searchParams.get("status");
   const code = url.searchParams.get("referral")?.trim().toUpperCase();
+  const deck = url.searchParams.get("deck");           // yes | no
+  const video = url.searchParams.get("video");         // any | none | link | file
+  const submitted = url.searchParams.get("submitted"); // yes | no
   const page = Math.max(1, Number(url.searchParams.get("page") ?? 1) || 1);
+
+  const hasLink: Prisma.ApplicationWhereInput = { AND: [{ pitchVideoLink: { not: null } }, { pitchVideoLink: { not: "" } }] };
+  const noLink: Prisma.ApplicationWhereInput = { OR: [{ pitchVideoLink: null }, { pitchVideoLink: "" }] };
+  const and: Prisma.ApplicationWhereInput[] = [];
+  if (deck === "yes") and.push({ file: { isNot: null } });
+  if (deck === "no") and.push({ file: { is: null } });
+  if (video === "file") and.push({ video: { isNot: null } });
+  if (video === "link") and.push(hasLink);
+  if (video === "any") and.push({ OR: [{ video: { isNot: null } }, hasLink] });
+  if (video === "none") and.push({ video: { is: null } }, noLink);
+  if (submitted === "yes") and.push({ submittedAt: { not: null } });
+  if (submitted === "no") and.push({ submittedAt: null });
+
   const where: Prisma.ApplicationWhereInput = {
     ...(track === "junior" || track === "main" ? { track } : {}),
     ...(status === "awaiting_payment" || status === "paid" || status === "refunded" ? { status } : {}),
     ...(code ? { referralCode: code } : {}),
+    ...(and.length ? { AND: and } : {}),
     ...(q ? { OR: [
       { teamName: { contains: q, mode: "insensitive" } }, { institution: { contains: q, mode: "insensitive" } },
       { reference: { contains: q, mode: "insensitive" } }, { ownerEmail: { contains: q, mode: "insensitive" } },
@@ -206,10 +229,13 @@ async function listApplications(url: URL): Promise<Response> {
     prisma.application.count({ where }),
     prisma.application.findMany({
       where, orderBy: { createdAt: "desc" }, skip: (page - 1) * pageSize, take: pageSize,
-      select: { reference: true, submittedAt: true, track: true, status: true, teamName: true, institution: true, ownerEmail: true, theme: true, ideaTitle: true, referralCode: true, createdAt: true, paidAt: true, file: { select: { filename: true } } },
+      select: { reference: true, submittedAt: true, track: true, status: true, teamName: true, institution: true, ownerEmail: true, theme: true, ideaTitle: true, referralCode: true, pitchVideoLink: true, createdAt: true, paidAt: true, file: { select: { filename: true } }, video: { select: { filename: true } } },
     }),
   ]);
-  return json({ total, page, pageSize, applications: rows.map(({ file, ...a }) => ({ ...a, hasDeck: !!file })) });
+  return json({
+    total, page, pageSize,
+    applications: rows.map(({ file, video: vf, pitchVideoLink, ...a }) => ({ ...a, hasDeck: !!file, hasVideoFile: !!vf, hasVideoLink: !!pitchVideoLink })),
+  });
 }
 
 async function getApplication(reference: string): Promise<Response> {

@@ -29,11 +29,14 @@ export async function insertApplication(body: unknown, ownerEmail: string): Prom
   if (!parsed.success) return json({ error: "validation", errors: issues(parsed.error) }, 422);
   const t = parsed.data;
 
-  // A code that is typed must be one we issued (and still active). Leaving it empty is always fine.
-  const referralCode = t.referralCode?.toUpperCase() || null;
+  // A code that is typed must be one we issued (and still active). Leaving it empty is fine, and then the code this account
+  // arrived with (from a referral link) is used, so a blank or reset form field never loses it.
+  let referralCode = t.referralCode?.toUpperCase() || null;
   if (referralCode) {
     const rc = await prisma.referralCode.findUnique({ where: { code: referralCode } });
     if (!rc || !rc.active) return json({ error: "validation", errors: { referralCode: "This referral code isn't valid" } }, 422);
+  } else {
+    referralCode = await validAccountReferral(ownerEmail);
   }
 
   const existing = await prisma.application.findUnique({ where: { ownerEmail }, select: { reference: true, status: true } });
@@ -149,19 +152,19 @@ export async function getMyApplication(ownerEmail: string): Promise<Response> {
     submittedAt: a.submittedAt,
     ideaUpdatedAt: a.ideaUpdatedAt,
     ideaEditDeadline: config.ideaEditDeadline,
-    canEditIdea: canEdit && a.status === "paid" && open,
+    // Payment is the LAST step now: teams fill in and submit their idea first, then pay. Only the deadline and the role limit editing.
+    canEditIdea: canEdit && open,
     viewerRole: owner ? "owner" : canEdit ? "lead" : "member",
     ownerEmail: canEdit ? null : a.ownerEmail,
     members: teamMembers(data),
   });
 }
 
-/** Shared gate for every edit: who may edit, paid, before the deadline. */
+/** Shared gate for every edit: who may edit, and before the deadline (payment is no longer needed first). */
 async function editable(email: string) {
   const found = await applicationFor(email);
   if (!found) return { err: json({ error: "not_found" }, 404) };
   if (!found.canEdit) return { err: json({ error: "read_only", message: "Only the Lead, Co-lead or registering account can edit." }, 403) };
-  if (found.a.status !== "paid") return { err: json({ error: "payment_required" }, 403) };
   if (Date.now() > config.ideaEditDeadline.getTime()) return { err: json({ error: "deadline_passed", deadline: config.ideaEditDeadline }, 403) };
   return { a: found.a };
 }
@@ -341,4 +344,34 @@ export async function getMyPendingPayment(email: string): Promise<Response> {
       and pm.match_status <> 'matched' and lower(e.payload->'payer'->>'email') = ${email}
     order by pm.occurred_at desc limit 1`;
   return json({ pending: rows[0] ? { amount: rows[0].amount, occurredAt: rows[0].occurred_at } : null });
+}
+
+/** The account's stored referral, but only while the code is still valid (issued and active). */
+async function validAccountReferral(email: string): Promise<string | null> {
+  const r = await prisma.accountReferral.findUnique({ where: { email } });
+  if (!r) return null;
+  const rc = await prisma.referralCode.findUnique({ where: { code: r.code } });
+  return rc?.active ? r.code : null;
+}
+
+/** GET /api/me/referral: the code to prefill on the registration form. */
+export async function getMyReferral(email: string): Promise<Response> {
+  return json({ code: await validAccountReferral(email) });
+}
+
+/**
+ * PUT /api/me/referral {code}: link the code a visitor arrived with to their account. The first valid code wins, so a later
+ * link click never replaces it. Unknown or inactive codes are ignored (`linked: false`), and the site then drops them.
+ */
+export async function setMyReferral(req: Request, email: string): Promise<Response> {
+  const body = await req.json().catch(() => null) as { code?: unknown } | null;
+  const code = typeof body?.code === "string" ? body.code.trim().toUpperCase() : "";
+  if (!/^[A-Z0-9_-]{3,30}$/.test(code)) return json({ linked: false, code: await validAccountReferral(email) });
+  const rc = await prisma.referralCode.findUnique({ where: { code } });
+  if (!rc?.active) return json({ linked: false, code: await validAccountReferral(email) });
+
+  const current = await validAccountReferral(email);
+  if (current) return json({ linked: false, code: current }); // first valid code wins
+  await prisma.accountReferral.upsert({ where: { email }, create: { email, code }, update: { code } });
+  return json({ linked: true, code });
 }

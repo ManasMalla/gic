@@ -174,17 +174,13 @@ Deno.test({
       assertEquals([body.error, body.reference], ["already_registered", first]);
     });
 
-    await t.step("portal flow: locked until paid, then editable, then locked after the deadline", async () => {
+    await t.step("portal flow: edit and submit first, pay last, locked after the deadline", async () => {
       const email = `portal-${tag}@example.com`;
       const r = await create("junior", email);
 
       const before = await (await me(email)).json();
-      assertEquals([before.status, before.canEditIdea, before.ideaComplete], ["awaiting_payment", false, false]);
+      assertEquals([before.status, before.canEditIdea, before.ideaComplete], ["awaiting_payment", true, false]); // editable before paying
       assertEquals([before.founder.name, before.founder.email, before.founder.phone, before.founder.gender], ["Asha Test", email, "9876543210", "female"]);
-      assertEquals((await saveIdea(email, ideaForm(idea()))).status, 403); // payment_required
-
-      await webhook({ reference: r });
-      assertEquals((await (await me(email)).json()).canEditIdea, true);
 
       assertEquals((await saveIdea(email, ideaForm(idea({ theme: "not-a-theme" })))).status, 422);
       // 1) details only: fine without a deck, but the team is not complete and cannot submit yet
@@ -203,6 +199,12 @@ Deno.test({
       // 3) final submit
       const done = await (await submit(email)).json();
       assert(done.submittedAt);
+      assertEquals(done.status, "awaiting_payment"); // submitted, not yet paid
+
+      // ...then the payment arrives (last step): the team is paid and its submission is untouched
+      await webhook({ reference: r });
+      const paid = await (await me(email)).json();
+      assertEquals([paid.status, !!paid.submittedAt, paid.idea.ideaTitle], ["paid", true, "First title"]);
 
       // Editing afterwards keeps it submitted; the stored deck is kept.
       const edited = await (await saveIdea(email, ideaForm(idea({ ideaTitle: "Second title" }), false))).json();
@@ -377,6 +379,83 @@ Deno.test({
       assertEquals([wrong.out.match, await status(ref)], ["unmatched", "awaiting_payment"]);
       const right = await webhook({ payer: { email: payer }, registration: { track: "Junior Track School students Class 10 12" }, payment: { transaction_id: `txn_trk2_${tag}`, amount: 49914, currency: "INR" } });
       assertEquals([right.out.match, await status(ref)], ["matched", "paid"]);
+    });
+
+    await t.step("referral link: a code is linked to the account (first valid wins) and prefilled at registration", async () => {
+      const staffEmail = config.superAdminEmails[0];
+      const mk = async (label: string) => (await run("/api/staff/referrals", { method: "POST", headers: { ...as(staffEmail), "content-type": "application/json" }, body: JSON.stringify({ label }) }).then((r) => r.json())).code as string;
+      const first = await mk("first " + tag), second = await mk("second " + tag);
+      const email = `reflink-${tag}@example.com`;
+      const put = (code: unknown) => run("/api/me/referral", { method: "PUT", headers: { ...as(email), "content-type": "application/json" }, body: JSON.stringify({ code }) }).then((r) => r.json());
+      const get = () => run("/api/me/referral", { headers: as(email) }).then((r) => r.json());
+
+      assertEquals((await get()).code, null);
+      assertEquals((await put("NOT-A-CODE")).linked, false);            // unknown: ignored
+      assertEquals((await put(42)).linked, false);                       // junk: ignored
+      assertEquals([(await put(first.toLowerCase())).linked, (await get()).code], [true, first]); // case-insensitive
+      assertEquals([(await put(second)).linked, (await get()).code], [false, first]);             // first valid wins
+
+      // it is what the form is prefilled with, and registering with it counts for that code
+      const reg = await run("/api/applications", { method: "POST", headers: { ...as(email), "content-type": "application/json" }, body: JSON.stringify({ ...teamData("junior", email), referralCode: (await get()).code }) });
+      assertEquals(reg.status, 201);
+      const stats = await run("/api/staff/referrals", { headers: as(staffEmail) }).then((r) => r.json());
+      assertEquals(stats.codes.find((c: { code: string }) => c.code === first).registrations, 1);
+
+      // a blank form field does not lose the code the account arrived with
+      const blankReg = `reflink3-${tag}@example.com`;
+      const putBlank = (code: string) => run("/api/me/referral", { method: "PUT", headers: { ...as(blankReg), "content-type": "application/json" }, body: JSON.stringify({ code }) }).then((r) => r.json());
+      assertEquals((await putBlank(first)).linked, true);
+      const reg2 = await run("/api/applications", { method: "POST", headers: { ...as(blankReg), "content-type": "application/json" }, body: JSON.stringify({ ...teamData("junior", blankReg), referralCode: "" }) });
+      assertEquals(reg2.status, 201);
+      assertEquals((await prisma.application.findUniqueOrThrow({ where: { ownerEmail: blankReg } })).referralCode, first);
+      // reach is visible even before anyone registers: accounts that opened the link and signed in
+      const after = await run("/api/staff/referrals", { headers: as(staffEmail) }).then((r) => r.json());
+      const firstRow = after.codes.find((c: { code: string }) => c.code === first);
+      assertEquals([firstRow.accounts, firstRow.registrations], [2, 2]);
+      const overview = await run("/api/staff/stats", { headers: as(staffEmail) }).then((r) => r.json());
+      assertEquals(overview.referrals.find((r: { code: string }) => r.code === first).accounts, 2);
+
+      // ...and an account that never had a link still registers without one
+      const noLink = `reflink4-${tag}@example.com`;
+      assertEquals((await run("/api/applications", { method: "POST", headers: { ...as(noLink), "content-type": "application/json" }, body: JSON.stringify({ ...teamData("junior", noLink), referralCode: "" }) })).status, 201);
+      assertEquals((await prisma.application.findUniqueOrThrow({ where: { ownerEmail: noLink } })).referralCode, null);
+
+      // a deactivated code is no longer offered
+      const other = `reflink2-${tag}@example.com`;
+      const putOther = (code: string) => run("/api/me/referral", { method: "PUT", headers: { ...as(other), "content-type": "application/json" }, body: JSON.stringify({ code }) }).then((r) => r.json());
+      assertEquals((await putOther(second)).linked, true);
+      await run(`/api/staff/referrals/${second}`, { method: "PATCH", headers: { ...as(staffEmail), "content-type": "application/json" }, body: JSON.stringify({ active: false }) });
+      assertEquals((await run("/api/me/referral", { headers: as(other) }).then((r) => r.json())).code, null);
+      assertEquals((await putOther(second)).linked, false);
+    });
+
+    await t.step("admin list filters: pitch deck, video (link / file / none) and submission", async () => {
+      const staffEmail = config.superAdminEmails[0];
+      const tagq = `flt-${tag}`;
+      const mk = async (n: string, o: { deck?: boolean; link?: string; file?: boolean; submitted?: boolean }) => {
+        const a = await prisma.application.create({ data: { reference: `GIC26-F${n}${tag.slice(0, 4).toUpperCase()}-X`, ownerEmail: `${tagq}-${n}@example.com`, track: "main", teamName: `${tagq}-${n}`, institution: "X", data: {}, amountDue: 69900, status: "paid", pitchVideoLink: o.link ?? null, submittedAt: o.submitted ? new Date() : null } });
+        if (o.deck) await prisma.applicationFile.create({ data: { applicationId: a.id, filename: "d.pdf", contentType: "application/pdf", size: 1, bytes: new Uint8Array(1) } });
+        if (o.file) await prisma.applicationVideo.create({ data: { applicationId: a.id, filename: "v.mp4", contentType: "video/mp4", size: 1, objectKey: "k" + n + tag, publicUrl: "https://x/v" } });
+        return a;
+      };
+      await mk("A", { deck: true, link: "https://y.be/1", submitted: true });   // deck + link, submitted
+      await mk("B", { deck: true, file: true });                               // deck + file
+      await mk("C", {});                                                       // nothing
+      await mk("D", { link: "https://y.be/2" });                               // link only, no deck
+      await mk("E", { link: "" , deck: true, file: true, submitted: true });   // file only (empty link counts as none), submitted
+      const list = async (qs: string) => (await run(`/api/staff/applications?q=${tagq}&${qs}`, { headers: as(staffEmail) }).then((r) => r.json())).applications.map((a: { teamName: string }) => a.teamName.slice(-1)).sort().join("");
+      assertEquals(await list(""), "ABCDE");
+      assertEquals(await list("deck=yes"), "ABE");
+      assertEquals(await list("deck=no"), "CD");
+      assertEquals(await list("video=any"), "ABDE");
+      assertEquals(await list("video=none"), "C");
+      assertEquals(await list("video=link"), "AD");
+      assertEquals(await list("video=file"), "BE");
+      assertEquals(await list("submitted=yes"), "AE");
+      assertEquals(await list("submitted=no"), "BCD");
+      assertEquals(await list("deck=yes&video=file&submitted=no"), "B");   // filters combine
+      const row = (await run(`/api/staff/applications?q=${tagq}-A`, { headers: as(staffEmail) }).then((r) => r.json())).applications[0];
+      assertEquals([row.hasDeck, row.hasVideoLink, row.hasVideoFile, !!row.submittedAt], [true, true, false, true]);
     });
 
     await t.step("an unmatched payment from my own email is visible to me (so the site can show Pay now as already done)", async () => {
