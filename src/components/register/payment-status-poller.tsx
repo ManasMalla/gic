@@ -52,14 +52,15 @@ export function PaymentStatusPoller() {
     return () => { stop = true; clearTimeout(timer); };
   }, [startedAt, returned, router]);
 
-  // Paid: take people straight to the portal, where the next step (submit the idea) is.
-  const paid = view.kind === "app" && view.app.status === "paid";
+  // Paid but the idea is not submitted yet (they paid first): take them straight to the portal, where the idea is.
+  // Paid AND submitted: the entry is complete, so there is nothing more to do and no automatic redirect.
+  const toPortal = view.kind === "app" && view.app.status === "paid" && !view.app.submittedAt;
   useEffect(() => {
-    if (!paid) return;
+    if (!toPortal) return;
     if (left <= 0) { router.push("/portal"); return; }
     const t = setTimeout(() => setLeft((n) => n - 1), 1000);
     return () => clearTimeout(t);
-  }, [paid, left, router]);
+  }, [toPortal, left, router]);
 
   const box = "mx-auto max-w-xl rounded-[1.75rem] p-8 text-center sm:p-12";
 
@@ -98,14 +99,23 @@ export function PaymentStatusPoller() {
   );
 
   const { app } = view;
+  if (app.status === "paid" && app.submittedAt) return (
+    <div className={`${box} bg-forest text-white`}>
+      <p className="mx-auto grid size-14 place-items-center rounded-full bg-gold text-2xl text-ink" aria-hidden>✓</p>
+      <h2 className="mt-5 font-display text-4xl font-bold">Payment confirmed</h2>
+      <p className="mt-3 text-white/75"><strong className="text-white">{app.team.teamName}</strong> is all set. Your idea is submitted and your registration fee is paid, so your entry is complete.</p>
+      <p className="mt-4 rounded-xl bg-white/10 p-4 text-left text-sm leading-relaxed text-white">You can still edit your idea, deck and video in the team portal until the deadline.</p>
+      <p className="mt-4 font-mono text-sm tracking-wider text-gold">{app.reference}</p>
+      <ButtonLink href="/portal" className="mt-8">Open the team portal →</ButtonLink>
+    </div>
+  );
   if (app.status === "paid") return (
     <div className={`${box} bg-forest text-white`}>
       <p className="mx-auto grid size-14 place-items-center rounded-full bg-gold text-2xl text-ink" aria-hidden>✓</p>
       <h2 className="mt-5 font-display text-4xl font-bold">Payment confirmed</h2>
-      <p className="mt-3 text-white/75"><strong className="text-white">{app.team.teamName}</strong> is registered. Payment is not the last step:</p>
+      <p className="mt-3 text-white/75"><strong className="text-white">{app.team.teamName}</strong> is registered and paid.</p>
       <p className="mt-4 rounded-xl bg-white/10 p-4 text-left text-sm leading-relaxed text-white">
-        <strong className="text-gold">Step 4 of 4: submit your idea.</strong> In your team portal, fill in your idea details, upload your pitch deck, add your pitch video (a link or a file), and press <strong>Submit</strong>.
-        {app.submittedAt && " (You've already submitted; you can still edit until the deadline.)"}
+        <strong className="text-gold">One thing left: submit your idea.</strong> In your team portal, fill in your idea details, upload your pitch deck, add your pitch video (a link or a file), and press <strong>Submit</strong>.
       </p>
       <p className="mt-4 font-mono text-sm tracking-wider text-gold">{app.reference}</p>
       <ButtonLink href="/portal" className="mt-8">Go to the portal now →</ButtonLink>
@@ -129,7 +139,7 @@ export function PaymentStatusPoller() {
     <div className={`${box} bg-white shadow-card`}>
       <span className="mx-auto block size-10 animate-spin rounded-full border-4 border-mint border-t-brand" aria-hidden />
       <h2 className="mt-6 font-display text-3xl font-bold">{returned === "success" ? "Payment received. Confirming…" : "Waiting for confirmation…"}</h2>
-      <p className="mt-3 text-muted">We&apos;re waiting for GEvents to confirm your payment, usually a few seconds. This page updates by itself and then takes you to your team portal to submit your idea.</p>
+      <p className="mt-3 text-muted">We&apos;re waiting for GEvents to confirm your payment, usually a few seconds. This page updates by itself and then shows your next step.</p>
       <p className="mt-4 font-mono text-sm tracking-wider text-brand">{app.reference}</p>
       {slow && (
         <p className="mt-6 rounded-xl bg-cream-soft p-4 text-sm text-muted">

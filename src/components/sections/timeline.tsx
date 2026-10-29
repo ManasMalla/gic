@@ -2,7 +2,7 @@ import { Section, SectionHeading } from "@/components/ui/section";
 import { timeline } from "@/content/timeline";
 import { cn } from "@/lib/cn";
 
-const dot = { "Main Track": "bg-sky", "Junior Track": "bg-coral" } as const;
+const dot = { "Senior Track": "bg-sky", "Junior Track": "bg-coral" } as const;
 
 export function Timeline() {
   return (

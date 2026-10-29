@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { SiteHeader } from "@/components/layout/site-header";
+import { ReferralTracker } from "@/components/layout/referral-tracker";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { site } from "@/content/site";
 import "./globals.css";
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
+        <ReferralTracker />
         <SiteHeader />
         <main id="main" className="flex-1">
           {children}

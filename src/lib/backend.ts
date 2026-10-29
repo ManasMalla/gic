@@ -58,3 +58,10 @@ export async function fetchPendingPayment(email: string): Promise<{ amount: numb
   if (!res.ok) return null;
   return ((await res.json()) as { pending: { amount: number | null; occurredAt: string } | null }).pending;
 }
+
+/** The referral code linked to this account (still valid), used to prefill the registration form. */
+export async function fetchAccountReferral(email: string): Promise<string | null> {
+  const res = await backend("/api/me/referral", email);
+  if (!res.ok) return null;
+  return ((await res.json()) as { code: string | null }).code;
+}

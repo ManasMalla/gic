@@ -53,5 +53,7 @@ export function NoAccess({ email }: { email: string }) {
 export const th = "px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-muted";
 export const td = "px-3 py-2 align-top text-sm";
 export const input = "rounded-xl border border-line bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20";
+/** A dropdown that looks the same in every browser (see .select-themed in globals.css). */
+export const select = `${input} select-themed`;
 export const btn = "rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark";
 export const btnDanger = "rounded-full px-3 py-1.5 text-sm font-semibold text-coral hover:bg-coral/10";

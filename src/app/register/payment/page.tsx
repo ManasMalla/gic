@@ -31,13 +31,17 @@ async function Body() {
 
   const fee = app.amountDue / 100;
   const failed = app.lastPayment?.type === "payment.failed";
+  // Payment is the last step: the idea is submitted first. (After the editing deadline a team that never submitted may still pay.)
+  const submitFirst = !app.submittedAt && app.canEditIdea;
 
   return (
     <div className="mx-auto max-w-2xl">
-      <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand">Step 3 of 4 · Pay now</p>
+      <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand">Step 4 of 4 · Pay now</p>
       <h1 className="mt-2 font-display text-4xl font-bold">Pay the registration fee</h1>
       <p className="mt-3 text-muted">
-        Team <strong className="text-ink">{app.team.teamName}</strong> is saved. Pay the fee on GITAM GEvents to confirm your place. As soon as the payment is confirmed you&apos;ll be taken to your team portal for <strong className="text-ink">step 4: submit your idea</strong> (details, pitch deck and video). Payment is not the last step.
+        {submitFirst
+          ? <>Team <strong className="text-ink">{app.team.teamName}</strong> is saved. Payment is the <strong className="text-ink">last step</strong>: submit your idea first (details, pitch deck and video) in your team portal, then come back to pay.</>
+          : <>Team <strong className="text-ink">{app.team.teamName}</strong> has submitted its idea. Pay the fee on GITAM GEvents to confirm your entry. This is the last step.</>}
       </p>
 
       {failed && (
@@ -52,6 +56,9 @@ async function Body() {
         <div className="bg-white p-5"><dt className="text-xs font-bold uppercase tracking-widest text-muted">Your reference</dt><dd className="mt-1 font-mono text-lg font-bold text-brand">{app.reference}</dd></div>
       </dl>
 
+      {submitFirst ? (
+        <div className="mt-8"><ButtonLink href="/portal" variant="brand">Go to my portal to submit my idea →</ButtonLink></div>
+      ) : (
       <div className="mt-8 flex flex-wrap gap-3">
         <ButtonLink href={paymentUrl({
             email: app.founderEmail ?? user.email,
@@ -63,6 +70,7 @@ async function Body() {
           })} external>Pay on GEvents ↗</ButtonLink>
         <ButtonLink href="/register/payment-status" variant="ghost">I&apos;ve paid — check status</ButtonLink>
       </div>
+      )}
       <p className="mt-6 text-sm text-muted">
         Use the team lead&apos;s email ({app.founderEmail ?? user.email}) on GEvents so we can match your payment automatically. Keep the reference above for any questions. Questions? <a className="font-semibold text-brand underline" href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
       </p>

@@ -41,7 +41,7 @@ export const stepSchemas = {
     cofounder: member,
     member3: optionalMember,
     member4: optionalMember,
-    member5: optionalMember, // Main Track only (teams of up to 6)
+    member5: optionalMember, // Senior Track only (teams of up to 6)
     member6: optionalMember,
   }),
   confirm: z.object({

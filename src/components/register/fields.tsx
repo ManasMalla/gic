@@ -43,7 +43,7 @@ export function TextAreaField({ label, name, error, hint, required, className, m
 export function SelectField({ label, name, error, hint, required, className, options, placeholder = "Select…", ...input }: Common & Omit<React.ComponentProps<"select">, "name"> & { options: readonly { value: string; label: string }[]; placeholder?: string }) {
   return (
     <Shell {...{ label, name, error, hint, required, className }}>
-      <select id={name} name={name} required={required} defaultValue="" className={control} {...aria(name, error, hint)} {...input}>
+      <select id={name} name={name} required={required} defaultValue="" className={cn(control, "select-themed")} {...aria(name, error, hint)} {...input}>
         <option value="" disabled>{placeholder}</option>
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>

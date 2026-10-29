@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ConfirmButton } from "@/components/admin/confirm-button";
-import { AdminFrame, btn, btnDanger, input, NoAccess, td, th } from "@/components/admin/frame";
+import { AdminFrame, btn, select, btnDanger, input, NoAccess, td, th } from "@/components/admin/frame";
 import { deleteApplication, saveApplication } from "../../actions";
 import { backend } from "@/lib/backend";
 import { requireStaff } from "@/lib/staff";
@@ -45,11 +45,11 @@ async function Body({ params, searchParams }: { params: Promise<{ reference: str
           <input type="hidden" name="reference" value={a.reference} />
           <div className="grid gap-4 sm:grid-cols-2">
             <T name="teamName" label="Team name" v={a.teamName} /><T name="institution" label="Institution" v={a.institution} />
-            <label className="text-sm font-semibold">Status<select name="status" defaultValue={a.status} className={`${input} mt-1 block w-full`}><option value="awaiting_payment">Awaiting payment</option><option value="paid">Paid</option><option value="refunded">Refunded</option></select></label>
+            <label className="text-sm font-semibold">Status<select name="status" defaultValue={a.status} className={`${select} mt-1 block w-full`}><option value="awaiting_payment">Awaiting payment</option><option value="paid">Paid</option><option value="refunded">Refunded</option></select></label>
             <T name="referralCode" label="Referral code" v={a.referralCode ?? ""} mono />
           </div>
           <h2 className="pt-4 font-display text-2xl font-bold">Submission</h2>
-          <label className="block text-sm font-semibold">Theme<select name="theme" defaultValue={a.theme ?? ""} className={`${input} mt-1 block w-full`}><option value="">— none —</option>{THEMES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
+          <label className="block text-sm font-semibold">Theme<select name="theme" defaultValue={a.theme ?? ""} className={`${select} mt-1 block w-full`}><option value="">— none —</option>{THEMES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
           <T name="ideaTitle" label="Idea title" v={a.ideaTitle ?? ""} />
           <A name="problemStatement" label="Problem statement" v={a.problemStatement ?? ""} />
           <A name="ideaSummary" label="Idea summary" v={a.ideaSummary ?? ""} rows={6} />

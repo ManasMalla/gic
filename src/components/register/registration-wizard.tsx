@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { tracks } from "@/content/tracks";
 import { GENDERS, validateStep, type FieldErrors, type StepId } from "@/lib/registration/schema";
 import { cn } from "@/lib/cn";
+import { clearStoredReferral, readStoredReferral } from "@/lib/referral";
 import { SelectField, TextAreaField, TextField } from "./fields";
 
 const steps: { id: StepId; title: string }[] = [
@@ -16,7 +17,7 @@ const steps: { id: StepId; title: string }[] = [
 ];
 
 // What the progress bar shows: the whole journey, including the two steps that happen after this form.
-const journey = ["Team & track", "Team members", "Pay now", "Submit idea"];
+const journey = ["Team & track", "Team members", "Submit idea", "Pay now"];
 
 const genderOptions = GENDERS.map((g) => ({ value: g, label: g.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase()) }));
 const initial: RegisterState = { status: "idle" };
@@ -27,8 +28,8 @@ const owns: Record<StepId, string[]> = {
   confirm: ["declaration", "remarks"],
 };
 
-/** Step 1 of the journey (after Google sign-in): who is on the team. Payment is next, the idea comes later in the portal. */
-export function TeamWizard({ defaultTrack, email, paidFirst = false }: { defaultTrack: "junior" | "main" | ""; email: string; paidFirst?: boolean }) {
+/** Steps 1-2 of the journey (after Google sign-in): who is on the team. The idea (step 3) and the payment (step 4, last) follow in the portal. */
+export function TeamWizard({ defaultTrack, email, paidFirst = false, defaultReferral = "" }: { defaultTrack: "junior" | "main" | ""; email: string; paidFirst?: boolean; defaultReferral?: string }) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(registerTeam, initial);
   const [step, setStep] = useState(0);
@@ -37,10 +38,24 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false }: { default
   const [clientErrors, setClientErrors] = useState<FieldErrors>({});
   const formRef = useRef<HTMLFormElement>(null);
 
+  // Never lose a referral: the account's code is prefilled by the server; if it has not been linked yet (they just arrived and
+  // signed in on this very page) fall back to what the browser remembers, or ask the server once more.
+  useEffect(() => {
+    const field = formRef.current?.elements.namedItem("referralCode") as HTMLInputElement | null;
+    if (!field || field.value) return;
+    const stored = readStoredReferral();
+    if (stored) { field.value = stored; return; }
+    fetch("/api/me/referral", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { code?: string | null } | null) => { if (d?.code && !field.value) field.value = d.code; })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (state.status === "success" || state.status === "exists") {
+      clearStoredReferral(); // it now lives on the application itself
       // Already paid: no payment page, let the status page attach the payment and move on to the portal.
-      router.push(paidFirst ? "/register/payment-status?status=success&paid=1" : "/register/payment");
+      router.push(paidFirst ? "/register/payment-status?status=success&paid=1" : "/portal");
     }
   }, [state, router, paidFirst]);
 
@@ -76,10 +91,10 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false }: { default
         Signed in as <strong className="text-ink">{email}</strong>. This account will manage your team&apos;s application.
       </p>
 
-      {/* The whole journey. Paid first: "3 Pay now" is already done, so the order reads 3 (done) -> 1 -> 2 -> 4. */}
+      {/* The whole journey. Paid first: "4 Pay now" is already done, so the order reads 4 (done) -> 1 -> 2 -> 3. */}
       <ol className="mb-10 grid grid-cols-4 gap-2" aria-label="Progress">
         {(paidFirst
-          ? [{ n: 3, title: "Pay now", done: true }, { n: 1, title: "Team & track" }, { n: 2, title: "Team members" }, { n: 4, title: "Submit idea" }]
+          ? [{ n: 4, title: "Pay now", done: true }, { n: 1, title: "Team & track" }, { n: 2, title: "Team members" }, { n: 3, title: "Submit idea" }]
           : journey.map((title, i) => ({ n: i + 1, title }))
         ).map((item, i) => {
           const active = paidFirst ? Math.min(step, 1) + 1 === i : i === step;
@@ -127,7 +142,7 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false }: { default
         {errors.track && <p role="alert" className="text-xs font-medium text-coral">{errors.track}</p>}
         <div className="grid gap-4 sm:grid-cols-2">
           <TextField label="Team name" name="teamName" maxLength={100} required error={errors.teamName} />
-          <TextField label="Referral code (optional)" name="referralCode" maxLength={30} autoComplete="off" error={errors.referralCode} />
+          <TextField label="Referral code (optional)" name="referralCode" maxLength={30} autoComplete="off" defaultValue={defaultReferral} error={errors.referralCode} />
         </div>
         <TextField label={track === "junior" ? "School name" : "College / institution"} name="institution" maxLength={150} required error={errors.institution} />
         <TextAreaField label="Address" name="address" maxLength={200} required error={errors.address} />
@@ -154,14 +169,14 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false }: { default
       </fieldset>
 
       <fieldset hidden={step !== 2} className="space-y-6">
-        <legend className="mb-2 font-display text-3xl font-bold">{paidFirst ? "Review & finish" : "Review & continue to payment"}</legend>
+        <legend className="mb-2 font-display text-3xl font-bold">{paidFirst ? "Review & finish" : "Review & continue"}</legend>
         <div className="rounded-card bg-mint-soft p-6">
-          <p className="text-xs font-bold uppercase tracking-widest text-brand">{paidFirst ? "Registration fee: paid ✓" : "Registration fee"}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-brand">{paidFirst ? "Registration fee: paid ✓" : "Registration fee (paid last)"}</p>
           <p className="mt-1 font-display text-4xl font-bold">{trackInfo ? `₹${trackInfo.fee}` : "—"} <span className="text-base font-normal text-muted">per team</span></p>
           <ol className="mt-4 list-inside list-decimal space-y-1 text-sm text-muted">
             <li><strong className="text-ink">Save your team</strong> (this step)</li>
-            <li><strong className="text-ink">Pay now</strong> on GITAM GEvents{paidFirst ? " (done, we have your payment)" : ", then you're brought straight back here"}</li>
-            <li><strong className="text-ink">Submit your idea</strong> in the team portal: details, pitch deck and a 1-minute video. <strong className="text-ink">Payment is not the last step</strong>; your entry is complete only after you submit.</li>
+            <li><strong className="text-ink">Submit your idea</strong> in the team portal: details, pitch deck and a 1-minute video</li>
+            <li><strong className="text-ink">Pay now</strong> on GITAM GEvents{paidFirst ? " (done, we have your payment)" : " as the last step. Your entry is confirmed once the payment goes through"}</li>
           </ol>
         </div>
         <TextAreaField label="Remarks (optional)" name="remarks" maxLength={100} rows={2} error={errors.remarks} />
@@ -177,7 +192,7 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false }: { default
         {step < steps.length - 1 ? (
           <Button type="button" variant="brand" onClick={next}>Continue →</Button>
         ) : (
-          <Button type="submit" disabled={pending || redirecting}>{pending || redirecting ? "Saving…" : paidFirst ? "Save team & continue" : "Save team & continue to payment"}</Button>
+          <Button type="submit" disabled={pending || redirecting}>{pending || redirecting ? "Saving…" : paidFirst ? "Save team & continue" : "Save team & submit my idea"}</Button>
         )}
       </div>
     </form>

@@ -18,7 +18,7 @@ const errorOf = (s: SaveIdeaState) => (s.status === "error" ? s : undefined);
  * The idea, in steps on one page: details → pitch deck → pitch video (a link OR a file) → Submit.
  * Each file has its own small Upload button (shown once a file is chosen). Submit refuses while a chosen file is still un-uploaded.
  */
-export function IdeaForm({ initialApp }: { initialApp: MyApplication }) {
+export function IdeaForm({ initialApp, payUrl = null, fee = 0 }: { initialApp: MyApplication; payUrl?: string | null; fee?: number }) {
   const router = useRouter();
   const [app, setApp] = useState(initialApp);
   useEffect(() => setApp(initialApp), [initialApp]);
@@ -50,6 +50,9 @@ export function IdeaForm({ initialApp }: { initialApp: MyApplication }) {
   const errors = details.status === "error" ? details.errors : {};
   const idea = app.idea;
   const submitted = !!app.submittedAt;
+  const paid = app.status === "paid";
+  // Pay after submitting. If editing has closed (deadline) a team that never submitted may still pay.
+  const canPay = submitted || !app.canEditIdea;
   const missing = [
     !idea.theme || !idea.ideaTitle || !idea.problemStatement || !idea.ideaSummary ? "Idea details" : null,
     !app.deck ? "Pitch deck" : null,
@@ -87,7 +90,7 @@ export function IdeaForm({ initialApp }: { initialApp: MyApplication }) {
 
       {/* 1 — details. The video link input (step 3) and the final Submit button (step 4) belong to this form too. */}
       <form id="idea-details" onSubmit={onDetailsSubmit} noValidate className="space-y-6">
-        <h3 className="font-display text-xl font-bold">1 · Your idea</h3>
+        <h3 className="font-display text-xl font-bold">Your idea</h3>
         <fieldset disabled={readOnly} className="space-y-6 disabled:opacity-80">
           <SelectField
             key={`theme-${idea.theme}`} label="Innovation theme" name="theme" required error={errors.theme}
@@ -107,7 +110,7 @@ export function IdeaForm({ initialApp }: { initialApp: MyApplication }) {
 
       {/* 2 — pitch deck */}
       <section className="space-y-3 rounded-card border border-line p-5">
-        <h3 className="font-display text-xl font-bold">2 · Pitch deck</h3>
+        <h3 className="font-display text-xl font-bold">Pitch deck</h3>
         {app.deck && (
           <p className="text-sm">
             Current deck: <a href={app.deck.url ?? "/portal/deck"} className="font-semibold text-brand underline">{app.deck.filename}</a> <span className="text-muted">({kb(app.deck.size)})</span>
@@ -134,7 +137,7 @@ export function IdeaForm({ initialApp }: { initialApp: MyApplication }) {
       {/* 3 — pitch video: a link OR a file, in one place. The link is saved with "Save details" / Submit (form="idea-details"). */}
       <section className="space-y-4 rounded-card border border-line p-5">
         <div>
-          <h3 className="font-display text-xl font-bold">3 · Pitch video</h3>
+          <h3 className="font-display text-xl font-bold">Pitch video</h3>
           <p className="mt-1 text-sm text-muted">Add a link <strong className="text-ink">or</strong> upload a video file. Either one is enough.</p>
         </div>
 
@@ -178,10 +181,10 @@ export function IdeaForm({ initialApp }: { initialApp: MyApplication }) {
         )}
       </section>
 
-      {/* 4 — submit */}
+      {/* submit */}
       {!readOnly && (
         <section className={`space-y-3 rounded-card p-5 ${submitted ? "bg-mint-soft" : "bg-cream-soft"}`}>
-          <h3 className="font-display text-xl font-bold">4 · Submit</h3>
+          <h3 className="font-display text-xl font-bold">Submit your idea</h3>
           {submitted ? (
             <p className="text-sm">
               <strong className="text-brand">Submitted ✓</strong> on {fmt(app.submittedAt!)}. You can still change anything above until the deadline: just save or upload again, nothing needs re-submitting.
@@ -195,6 +198,30 @@ export function IdeaForm({ initialApp }: { initialApp: MyApplication }) {
             <Button type="submit" form="idea-details" name="intent" value="submit" disabled={submitting || missing.length > 0}>
               {submitting ? "Submitting…" : "Submit idea"}
             </Button>
+          )}
+        </section>
+      )}
+
+      {/* Step 4 of the journey, and the last: pay. Offered to the people who can edit; open once the idea is submitted. */}
+      {app.viewerRole !== "member" && (
+        <section className={`space-y-3 rounded-card border p-5 ${paid ? "border-brand bg-mint-soft" : "border-line"}`}>
+          <h3 className="font-display text-xl font-bold">Step 4: pay the registration fee</h3>
+          {paid ? (
+            <p className="text-sm"><strong className="text-brand">Payment confirmed ✓</strong> Your entry is complete. You can still edit your idea until the deadline.</p>
+          ) : (
+            <>
+              <p className="text-sm text-muted">
+                {canPay
+                  ? <>Pay <strong className="text-ink">₹{fee.toLocaleString("en-IN")}</strong> per team on GITAM GEvents to confirm your entry. Use the team Lead&apos;s email there so we can match your payment automatically.</>
+                  : <>Submit your idea first, then come back here to pay <strong className="text-ink">₹{fee.toLocaleString("en-IN")}</strong> per team. Your entry is confirmed once the payment goes through.</>}
+              </p>
+              {canPay && payUrl ? (
+                <a href={payUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-[#f0c451]">Pay ₹{fee.toLocaleString("en-IN")} on GEvents ↗</a>
+              ) : (
+                <button type="button" disabled className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink opacity-50">Pay on GEvents</button>
+              )}
+              {canPay && <p className="text-xs text-muted">After paying you&apos;re brought back here. If this page still says pending, it updates within a minute.</p>}
+            </>
           )}
         </section>
       )}

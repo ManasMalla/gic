@@ -25,7 +25,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "Who can participate?",
         "a": [
-          "Junior Track: Students studying in Classes 10–12. Main Track: Current undergraduate students and eligible recent graduates. Students from recognised institutions across India can participate, subject to the eligibility requirements of the respective track."
+          "Junior Track: Students studying in Classes 10–12. Senior Track: Current undergraduate students and eligible recent graduates. Students from recognised institutions across India can participate, subject to the eligibility requirements of the respective track."
         ]
       },
       {
@@ -47,21 +47,21 @@ export const faq: FaqGroup[] = [
         ]
       },
       {
-        "q": "What is the Main Track?",
+        "q": "What is the Senior Track?",
         "a": [
-          "The Main Track is designed for undergraduate students and eligible recent graduates working on an idea, prototype, MVP or early-stage venture."
+          "The Senior Track is designed for undergraduate students and eligible recent graduates working on an idea, prototype, MVP or early-stage venture."
         ]
       },
       {
         "q": "How many members can be there in a team?",
         "a": [
-          "Junior Track teams can have 2–4 members. Main Track teams can have 2–6 members."
+          "Junior Track teams can have 2–4 members. Senior Track teams can have 2–6 members."
         ]
       },
       {
         "q": "Can students from different colleges form a team?",
         "a": [
-          "For the Main Track, students from eligible institutions can participate as a team, subject to the eligibility requirements. For the Junior Track, team members should be from the same school."
+          "For the Senior Track, students from eligible institutions can participate as a team, subject to the eligibility requirements. For the Junior Track, team members should be from the same school."
         ]
       },
       {
@@ -79,7 +79,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "Can a team have more than two members?",
         "a": [
-          "Yes. A Junior Track team can have up to four members and a Main Track team up to six. However, only two members — the Lead and Co-Lead — will be invited to participate in the Grand Finale at GITAM Hyderabad."
+          "Yes. A Junior Track team can have up to four members and a Senior Track team up to six. However, only two members — the Lead and Co-Lead — will be invited to participate in the Grand Finale at GITAM Hyderabad."
         ]
       },
       {
@@ -109,7 +109,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "Do I need a working prototype?",
         "a": [
-          "No. A prototype is not compulsory. Junior Track participants can apply with a concept or early-stage idea. Main Track participants can apply with an idea, prototype, MVP or early-stage venture."
+          "No. A prototype is not compulsory. Junior Track participants can apply with a concept or early-stage idea. Senior Track participants can apply with an idea, prototype, MVP or early-stage venture."
         ]
       },
       {
@@ -133,7 +133,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "Can an existing startup participate?",
         "a": [
-          "Yes, provided the team meets the Main Track eligibility requirements and the venture is within the permitted stage."
+          "Yes, provided the team meets the Senior Track eligibility requirements and the venture is within the permitted stage."
         ]
       }
     ]
@@ -145,7 +145,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "How can I register?",
         "a": [
-          "Register through the official portal: [Register for GIC 2026](/register). It takes four steps: 1) register your team, 2) pay the fee on GEvents, 3) submit your idea (details, pitch deck and video) in the team portal, 4) edit it any time until 31 October 2026. Payment is not the last step: your entry is complete only after you submit your idea."
+          "Register through the official portal: [Register for GIC 2026](/register). It takes four steps: 1) register your team, 2) submit your idea (details, pitch deck and video) in the team portal, 3) pay the registration fee on GEvents, 4) edit your submission any time until 31 October 2026. Payment is the last step: your entry is confirmed once it goes through."
         ]
       },
       {
@@ -155,9 +155,15 @@ export const faq: FaqGroup[] = [
         ]
       },
       {
+        "q": "When do I pay?",
+        "a": [
+          "At the end. First register your team and submit your idea (details, pitch deck and video) in the team portal. Then pay the registration fee on GEvents from the same portal. Your entry is confirmed once the payment goes through."
+        ]
+      },
+      {
         "q": "What is the registration fee?",
         "a": [
-          "Junior Track: ₹499 per team. Main Track: ₹699 per team."
+          "Junior Track: ₹499 per team. Senior Track: ₹699 per team."
         ]
       },
       {
@@ -193,39 +199,63 @@ export const faq: FaqGroup[] = [
       {
         "q": "What happens after registration?",
         "a": [
-          "The competition follows multiple stages: Registration → Desk Screening → Online Bootcamp & Mentoring → Pitch Refinement → Shortlisting/Semi-Finals → Regional/Final Rounds → Grand Finale. The exact journey depends on the track."
+          "Registration and Round 1 screening (deadline 31 October; results 2 November) → virtual bootcamp with a personal mentor (9–11 November) → Round 2 pitch deck (due 15 November; results 18 November) → online semi-finals (20 November for the Senior Track, 21 November for the Junior Track) → Grand Finale at GITAM Hyderabad on 11 December. Both tracks follow the same stages; only the semi-final dates differ."
         ]
       },
       {
         "q": "How are teams shortlisted?",
         "a": [
-          "Submissions are reviewed by a jury based on factors such as the quality of the idea, relevance, completeness and quality of thinking."
+          "Submissions are reviewed by a jury based on factors such as the quality of the idea, relevance, completeness and quality of thinking. Round 1 results are announced on 2 November 2026, and the top 200 teams advance (100 from each track). After Round 2, the top 40 teams in each track go to the semi-finals."
         ]
       },
       {
         "q": "Will shortlisted teams receive mentoring?",
         "a": [
-          "Yes. Shortlisted teams will receive mentoring and coaching as they progress."
+          "Yes. Every team that advances after Round 1 is paired with a personal mentor who helps refine the pitch deck for Round 2."
         ]
       },
       {
         "q": "What is the online bootcamp?",
         "a": [
-          "It helps shortlisted teams improve their idea, business thinking and pitch through mentoring and expert guidance."
+          "A virtual bootcamp held online on 9–11 November 2026 for the teams that advance from Round 1. Its workshops cover business model validation, market sizing, financial modelling and pitch presentation skills. Teams then have 4 days to refine their pitch deck, and the Round 2 deck is due on 15 November 2026 at 11:59 PM IST."
         ]
       },
       {
         "q": "Will I get a venture coach?",
         "a": [
-          "Main Track teams progressing through the selection process receive venture coaching as part of the competition journey."
+          "Every team advancing to the bootcamp is paired with a personal mentor. Longer-term 1:1 venture coaching is part of the benefits for winners (see Prizes)."
         ]
       }
     ]
   },
   {
     "id": "finale",
-    "title": "Regional Rounds & Finale",
+    "title": "Semi-Finals & Finale",
     "items": [
+      {
+        "q": "How do the semi-finals work?",
+        "a": [
+          "Semi-finals are online (video conferencing) for both tracks: 20 November 2026 for the Senior Track and 21 November 2026 for the Junior Track. Each team gets a 20-minute slot: 8 minutes to present, 10 minutes of Q&A with the panel and 2 minutes of buffer. The number of slides is up to you. The top 8 Senior Track teams and the top 6 Junior Track teams reach the Grand Finale."
+        ]
+      },
+      {
+        "q": "Will there be regional rounds?",
+        "a": [
+          "No. This year both tracks have online semi-finals, so no travel is needed before the Grand Finale."
+        ]
+      },
+      {
+        "q": "How many teams reach the Grand Finale?",
+        "a": [
+          "14 teams reach the Grand Finale on 11 December 2026: the top 8 from the Senior Track and the top 6 from the Junior Track. From them, the jury selects 6 Senior Track and 4 Junior Track teams (2 from each track are eliminated)."
+        ]
+      },
+      {
+        "q": "What is the pitch format at the Grand Finale?",
+        "a": [
+          "Each team gets 8 minutes to pitch and 10 minutes of Q&A with the jury. The number of slides is up to you."
+        ]
+      },
       {
         "q": "Where will the Grand Finale be held?",
         "a": [
@@ -317,7 +347,7 @@ export const faq: FaqGroup[] = [
         ]
       },
       {
-        "q": "What are the Main Track cash prizes?",
+        "q": "What are the Senior Track cash prizes?",
         "a": [
           "Winner – ₹2,00,000; Runner-up – ₹1,00,000; 2nd Runner-up – ₹50,000; People's Choice Award – ₹50,000; plus special awards including the Dr. G.V.V. Rao Young Engineer Dreamer Awards."
         ]
@@ -337,7 +367,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "Is incubation support available?",
         "a": [
-          "Yes. Selected Main Track winners and other eligible finalists can receive incubation and venture-development support through the GITAM ecosystem as specified in the competition benefits."
+          "Yes. Selected Senior Track winners and other eligible finalists can receive incubation and venture-development support through the GITAM ecosystem as specified in the competition benefits."
         ]
       }
     ]
@@ -445,7 +475,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "Will the competition be online or offline?",
         "a": [
-          "It follows a hybrid journey: registration and initial screening online; bootcamp and mentoring online; Junior Track regional rounds at GITAM Bengaluru, Hyderabad and Visakhapatnam; Main Track online rounds followed by the offline Grand Finale; Grand Finale at GITAM Hyderabad."
+          "Everything is online until the finale: registration, screening, the bootcamp, mentoring and the semi-finals. Only the Grand Finale on 11 December is in person, at the GITAM Hyderabad campus."
         ]
       },
       {

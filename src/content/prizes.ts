@@ -22,12 +22,12 @@ export const prizeTracks: PrizeTrack[] = [
   {
     id: "main",
     label: "College & Graduate Innovators",
-    title: "Main Track",
+    title: "Senior Track",
     image: media("/media/brand/runnerup.webp"),
     prizes: [
       { rank: "Winner", cash: "₹2,00,000", perks: ["Awarded to the top college-level venture at the Grand Finale.", "Trophy + Certificate", "Free 6-month incubation at GITAM i-TBI (worth ₹3,00,000)", "Direct nomination for SIA Award 2027 by Impact Hub Hyderabad", "Workspace access, mentor network, press feature, and access to the GITAM VDC investor and alumni ecosystem"] },
-      { rank: "Runner-up", cash: "₹1,00,000", perks: ["Awarded to the second-best team in the Main Track.", "Certificate", "Direct nomination for SIA Award 2027 by Impact Hub Hyderabad", "Free 6-month incubation at GITAM i-TBI", "Mentorship from experienced venture coaches"] },
-      { rank: "2nd Runner-up", cash: "₹50,000", perks: ["Awarded to the third-best team in the Main Track.", "Certificate", "Direct nomination for SIA Award 2027 by Impact Hub Hyderabad", "Free 6-month incubation at GITAM i-TBI"] },
+      { rank: "Runner-up", cash: "₹1,00,000", perks: ["Awarded to the second-best team in the Senior Track.", "Certificate", "Direct nomination for SIA Award 2027 by Impact Hub Hyderabad", "Free 6-month incubation at GITAM i-TBI", "Mentorship from experienced venture coaches"] },
+      { rank: "2nd Runner-up", cash: "₹50,000", perks: ["Awarded to the third-best team in the Senior Track.", "Certificate", "Direct nomination for SIA Award 2027 by Impact Hub Hyderabad", "Free 6-month incubation at GITAM i-TBI"] },
     ],
     footer: {
       title: "All GIC Finalists",

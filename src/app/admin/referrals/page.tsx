@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import { CopyButton } from "@/components/admin/copy-button";
 import { AdminFrame, btn, btnDanger, input, NoAccess, td, th } from "@/components/admin/frame";
 import { createReferral, deleteReferral, updateReferral } from "../actions";
 import { can, requireStaff, staffJson } from "@/lib/staff";
 
 export const metadata: Metadata = { title: "Referral codes", robots: { index: false } };
-type Code = { code: string; label: string; active: boolean; createdAt: string; registrations?: number; paid?: number };
+const SHARE_BASE = "https://gic.gitam.edu";
+const shareLink = (code: string) => `${SHARE_BASE}/?utm=${encodeURIComponent(code)}`;
+type Code = { code: string; label: string; active: boolean; createdAt: string; accounts?: number; registrations?: number; paid?: number };
 
 export default function Page({ searchParams }: { searchParams: Promise<{ notice?: string; error?: string }> }) {
   return <Suspense fallback={<p className="p-10 text-center text-muted">Loading…</p>}><Body searchParams={searchParams} /></Suspense>;
@@ -33,11 +36,12 @@ async function Body({ searchParams }: { searchParams: Promise<{ notice?: string;
 
       <div className="mt-8 overflow-x-auto">
         <table className="w-full min-w-[40rem]">
-          <thead><tr><th className={th}>Code</th><th className={th}>Note</th><th className={th}>Created</th>{manage && <><th className={th}>Registrations</th><th className={th}>Paid</th><th className={th}>Active</th><th className={th} /></>}</tr></thead>
+          <thead><tr><th className={th}>Code</th><th className={th}>Share link</th><th className={th}>Note</th><th className={th}>Created</th>{manage && <><th className={th} title="People who opened the link and signed in">Signed in</th><th className={th}>Registrations</th><th className={th}>Paid</th><th className={th}>Active</th><th className={th} /></>}</tr></thead>
           <tbody>
             {codes.map((c) => (
               <tr key={c.code} className="border-t border-line">
                 <td className={`${td} font-mono font-bold`}>{c.code}</td>
+                <td className={`${td} whitespace-nowrap`}><CopyButton text={shareLink(c.code)} /></td>
                 {manage ? (
                   <>
                     <td className={td} colSpan={1}>
@@ -45,7 +49,7 @@ async function Body({ searchParams }: { searchParams: Promise<{ notice?: string;
                         <input name="label" defaultValue={c.label} maxLength={100} className={`${input} w-56`} /></form>
                     </td>
                     <td className={td}>{new Date(c.createdAt).toLocaleDateString("en-IN")}</td>
-                    <td className={td}>{c.registrations}</td><td className={td}>{c.paid}</td>
+                    <td className={td}>{c.accounts}</td><td className={td}>{c.registrations}</td><td className={td}>{c.paid}</td>
                     <td className={td}><input form={`f-${c.code}`} type="checkbox" name="active" defaultChecked={c.active} aria-label={`${c.code} active`} className="size-4 accent-brand" /></td>
                     <td className={`${td} whitespace-nowrap`}>
                       <button form={`f-${c.code}`} className="rounded-full px-3 py-1.5 text-sm font-semibold text-brand hover:bg-brand/10">Save</button>
@@ -57,11 +61,12 @@ async function Body({ searchParams }: { searchParams: Promise<{ notice?: string;
                 )}
               </tr>
             ))}
-            {codes.length === 0 && <tr><td className={td} colSpan={7}>No codes yet.</td></tr>}
+            {codes.length === 0 && <tr><td className={td} colSpan={9}>No codes yet.</td></tr>}
           </tbody>
         </table>
       </div>
-      {!manage && <p className="mt-4 text-sm text-muted">You can see the codes you created. Usage numbers are visible to admins only.</p>}
+      <p className="mt-4 text-sm text-muted">Hand out the share link ({SHARE_BASE}/?utm=CODE). The code is remembered through sign-in and prefilled on the registration form.</p>
+      {!manage && <p className="mt-1 text-sm text-muted">You can see the codes you created. Usage numbers are visible to admins only.</p>}
     </AdminFrame>
   );
 }

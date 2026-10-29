@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/container";
 import { IdeaForm } from "@/components/portal/idea-form";
 import { getSession } from "@/lib/auth/session";
 import { fetchMyApplication } from "@/lib/backend";
+import { paymentUrl } from "@/lib/gevents";
 
 export const metadata: Metadata = { title: "Team portal" };
 
@@ -13,7 +14,6 @@ export default function PortalPage() {
     <>
       <section className="bg-forest py-12 text-white sm:py-16">
         <Container>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-mint">Team portal · Step 4 of 4: submit your idea</p>
           <Suspense fallback={<h1 className="mt-3 font-display text-4xl font-bold sm:text-5xl">Loading…</h1>}>
             <Heading />
           </Suspense>
@@ -35,19 +35,35 @@ async function load() {
   if (!user) redirect("/signin?next=/portal");
   const app = await fetchMyApplication(user.email);
   if (!app) redirect("/register");
-  if (app.status !== "paid") redirect("/register/payment"); // the portal opens only after payment is confirmed
+  // Open to every registered team: the idea is submitted first, and payment is the last step (shown at the bottom).
   return { user, app };
 }
 
 async function Heading() {
   const { app } = await load();
-  return <h1 className="mt-3 font-display text-4xl font-bold sm:text-5xl">{app.team.teamName}</h1>;
+  const step = app.status === "paid" ? (app.submittedAt ? "Your entry is complete" : "Step 3 of 4: submit your idea") : app.submittedAt ? "Step 4 of 4: pay the registration fee" : "Step 3 of 4: submit your idea, then pay";
+  return (
+    <>
+      <p className="text-xs font-bold uppercase tracking-[0.22em] text-mint">Team portal · {step}</p>
+      <h1 className="mt-3 font-display text-4xl font-bold sm:text-5xl">{app.team.teamName}</h1>
+    </>
+  );
 }
 
 async function Body() {
   const { user, app } = await load();
   // Pinned to IST: the server renders in UTC, and a deadline must read the same for everyone.
   const member = app.viewerRole === "member";
+  const paid = app.status === "paid";
+  // The encrypted GEvents link (the Lead's email and track travel inside it), for the people who may pay.
+  const payUrl = paid || member ? null : paymentUrl({
+    email: app.founderEmail ?? user.email,
+    track: app.track,
+    name: app.founder?.name ?? undefined,
+    mobile: app.founder?.phone ?? undefined,
+    organization: app.team.institution,
+    gender: app.founder?.gender ?? undefined,
+  });
   const deadline = new Date(app.ideaEditDeadline).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short", timeZone: "Asia/Kolkata" }) + " IST";
 
   return (
@@ -69,14 +85,18 @@ async function Body() {
           </p>
         )}
         <div className="mt-8">
-          <IdeaForm initialApp={app} />
+          <IdeaForm initialApp={app} payUrl={payUrl} fee={app.amountDue / 100} />
         </div>
       </div>
 
       <aside className="space-y-4 self-start">
         <div className="rounded-card border border-line bg-white p-6 shadow-card">
           <p className="text-xs font-bold uppercase tracking-widest text-muted">Registration</p>
-          <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-mint-soft px-3 py-1 text-sm font-semibold text-brand"><span aria-hidden>✓</span> Payment confirmed</p>
+          {paid ? (
+            <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-mint-soft px-3 py-1 text-sm font-semibold text-brand"><span aria-hidden>✓</span> Payment confirmed</p>
+          ) : (
+            <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-gold/30 px-3 py-1 text-sm font-semibold text-ink"><span aria-hidden>●</span> Payment pending (last step)</p>
+          )}
           <dl className="mt-4 space-y-3 text-sm">
             <div><dt className="text-muted">Reference</dt><dd className="font-mono font-bold text-brand">{app.reference}</dd></div>
             <div><dt className="text-muted">Track</dt><dd className="font-semibold capitalize">{app.track}</dd></div>
@@ -97,10 +117,10 @@ async function Body() {
             </ul>
           </div>
         )}
-        <div className={`rounded-card p-6 text-sm ${app.ideaComplete ? "bg-mint-soft" : "bg-cream-soft"}`}>
-          <p className="font-display text-lg font-bold">{app.ideaComplete ? "Idea submitted ✓" : "Idea not submitted yet"}</p>
+        <div className={`rounded-card p-6 text-sm ${app.submittedAt ? "bg-mint-soft" : "bg-cream-soft"}`}>
+          <p className="font-display text-lg font-bold">{app.submittedAt ? "Idea submitted ✓" : "Idea not submitted yet"}</p>
           <p className="mt-1 text-muted">
-            {member ? (app.ideaComplete ? "The team has submitted everything." : "The team hasn't finished the submission yet.") : app.ideaComplete ? "You're all set. Edit any time before the deadline." : "Complete every field and upload your deck to submit."}
+            {member ? (app.submittedAt ? "The team has submitted everything." : "The team hasn't finished the submission yet.") : app.submittedAt ? (paid ? "You're all set. Edit any time before the deadline." : "Now pay the registration fee at the bottom of the page to confirm your entry.") : "Complete your idea, deck and video, then press Submit. Payment is the last step."}
           </p>
         </div>
       </aside>

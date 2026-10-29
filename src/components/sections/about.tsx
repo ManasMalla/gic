@@ -40,9 +40,9 @@ export function About() {
           founders, early-stage investors, and dedicated venture coaches from day one, with access to inspiring
           sessions and valuable networks along the way.
         </Feature>
-        <Feature icon={MapPin} eyebrow="New format" title="In-person regional rounds" accent>
-          We&apos;re introducing in-person regional rounds for the Junior Track — enabling more students the chance to
-          pitch face-to-face before the Grand Finale.
+        <Feature icon={MapPin} eyebrow="New format" title="Online semi-finals for everyone" accent>
+          Semi-finals now run online for both tracks (20 and 21 November), so students from every region can pitch to
+          the panels without travelling, ahead of the in-person Grand Finale at GITAM Hyderabad.
         </Feature>
         <Feature icon={Rocket} eyebrow="Junior Track" title="Before the Grand Finale">
           This is what sets GITAM x Bower Innovation Challenge apart, making it a unique and impactful experience for

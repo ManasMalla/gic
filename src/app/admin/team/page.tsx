@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ConfirmButton } from "@/components/admin/confirm-button";
-import { AdminFrame, btn, btnDanger, input, NoAccess, td, th } from "@/components/admin/frame";
+import { AdminFrame, btn, select, btnDanger, input, NoAccess, td, th } from "@/components/admin/frame";
 import { removeUser, setRole } from "../actions";
 import { can, requireStaff, ROLE_LABEL, staffJson, type Role } from "@/lib/staff";
 
@@ -31,7 +31,7 @@ async function Body({ searchParams }: { searchParams: Promise<{ notice?: string;
           <input name="email" type="email" required placeholder="name@example.com" className={`${input} mt-1 block w-72`} />
         </label>
         <label className="text-sm font-semibold">Role
-          <select name="role" defaultValue="core" className={`${input} mt-1 block`}>
+          <select name="role" defaultValue="core" className={`${select} mt-1 block`}>
             <option value="core">Core team</option><option value="admin">Admin</option><option value="super_admin">Super admin</option>
           </select>
         </label>

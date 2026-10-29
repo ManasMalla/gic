@@ -10,7 +10,7 @@ type Stats = {
   perTrack: { junior: number; main: number };
   total?: number;
   byStatus?: { track: string; status: string; count: number }[];
-  referrals?: { code: string; registrations: number; paid: number }[];
+  referrals?: { code: string; accounts: number; registrations: number; paid: number }[];
   paymentsNeedingReview?: number;
 };
 
@@ -29,7 +29,7 @@ async function Body() {
     <AdminFrame me={me} active="overview" title="Registrations">
       <div className="grid gap-4 sm:grid-cols-3">
         <Card label="Junior track" value={s.perTrack.junior} note={full ? `${n("junior", "paid")} paid` : undefined} />
-        <Card label="Main track" value={s.perTrack.main} note={full ? `${n("main", "paid")} paid` : undefined} />
+        <Card label="Senior track" value={s.perTrack.main} note={full ? `${n("main", "paid")} paid` : undefined} />
         {full && <Card label="Total" value={s.total ?? 0} note={`${s.paymentsNeedingReview ?? 0} payments need review`} href={s.paymentsNeedingReview ? "/admin/payments" : undefined} />}
       </div>
       {!full && <p className="mt-6 text-sm text-muted">Your role shows the number of registrations per track. Create referral codes from the Referral codes tab.</p>}
@@ -42,11 +42,11 @@ async function Body() {
             ))}</tbody></table>
           <h2 className="mt-12 font-display text-2xl font-bold">Referral codes in use</h2>
           {s.referrals?.length ? (
-            <table className="mt-3 w-full max-w-xl text-left"><thead><tr><th className={th}>Code</th><th className={th}>Registrations</th><th className={th}>Paid</th></tr></thead>
-              <tbody>{s.referrals.sort((a, b) => b.registrations - a.registrations).map((r) => (
-                <tr key={r.code} className="border-t border-line"><td className={`${td} font-mono`}>{r.code}</td><td className={td}>{r.registrations}</td><td className={td}>{r.paid}</td></tr>
+            <table className="mt-3 w-full max-w-xl text-left"><thead><tr><th className={th}>Code</th><th className={th} title="People who opened the link and signed in">Signed in</th><th className={th}>Registrations</th><th className={th}>Paid</th></tr></thead>
+              <tbody>{s.referrals.sort((a, b) => b.registrations - a.registrations || b.accounts - a.accounts).map((r) => (
+                <tr key={r.code} className="border-t border-line"><td className={`${td} font-mono`}>{r.code}</td><td className={td}>{r.accounts}</td><td className={td}>{r.registrations}</td><td className={td}>{r.paid}</td></tr>
               ))}</tbody></table>
-          ) : <p className="mt-3 text-sm text-muted">No team has used a referral code yet.</p>}
+          ) : <p className="mt-3 text-sm text-muted">No referral code has had any sign-ins or registrations yet.</p>}
         </>
       )}
     </AdminFrame>

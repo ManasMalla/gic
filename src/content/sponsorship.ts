@@ -37,23 +37,23 @@ export const projectedReach = {
   headline: { value: "3,000+", label: "idea submissions expected across both tracks" },
   grid: [
     { value: "20+", label: "States" },
-    { value: "3", label: "Campuses" },
-    { value: "64", label: "Semi-finalists" },
-    { value: "16", label: "Finalists" },
+    { value: "2", label: "Tracks" },
+    { value: "80", label: "Semi-finalists" },
+    { value: "14", label: "Finalists" },
   ],
   note: "2026 figures are organiser projections until achieved.",
 };
 
 export const sponsorTracks = [
   { badge: "Junior Track", name: "School innovators", relevance: "School visibility · future talent · innovation engagement", focus: "Creative thinking · prototype concepts · teamwork · first pitch" },
-  { badge: "Main Track", name: "Campus founders", relevance: "Talent engagement · mentoring · sector idea discovery", focus: "Startup ideas · prototypes · market opportunity · early traction" },
+  { badge: "Senior Track", name: "Campus founders", relevance: "Talent engagement · mentoring · sector idea discovery", focus: "Startup ideas · prototypes · market opportunity · early traction" },
 ] as const;
 
 export const journeyTouchpoints = [
   { code: "R0", stage: "Register", what: "1-min pitch + deck", touchpoint: "Campaign + challenge" },
   { code: "R1", stage: "Screen", what: "Quality + relevance", touchpoint: "Expert reviewers" },
   { code: "R2", stage: "Refine", what: "Bootcamp + mentoring", touchpoint: "Workshops + office hours" },
-  { code: "R3", stage: "Pitch", what: "Semi-finals + regionals", touchpoint: "Jury + campus activation" },
+  { code: "R3", stage: "Pitch", what: "Online semi-finals", touchpoint: "Jury panels" },
   { code: "R4", stage: "Finale", what: "Live stage + awards", touchpoint: "Stage + booth + networking" },
 ] as const;
 
@@ -65,7 +65,7 @@ export const finaleFlow = [
   { time: "11:45", label: "Innovation panel" },
   { time: "12:30", label: "Junior Track finals", bold: true },
   { time: "1:30", label: "Networking lunch" },
-  { time: "2:15", label: "Main Track finals", bold: true },
+  { time: "2:15", label: "Senior Track finals", bold: true },
   { time: "4:30", label: "People's Choice" },
   { time: "5:00", label: "Awards ceremony", bold: true },
   { time: "6:30", label: "Media + networking" },
@@ -118,7 +118,7 @@ export const objectives = [
   { title: "Sector Challenge", body: "Bring a real industry problem" },
   { title: "Bootcamp Masterclass", body: "Teach founders what matters" },
   { title: "Internships", body: "Create opt-in talent pathways" },
-  { title: "Regional Round", body: "Own a campus activation" },
+  { title: "Finale Activation", body: "Own a campus activation" },
   { title: "Special Award", body: "Women-led · Tier 2/3 · People's Choice" },
   { title: "Tools & Credits", body: "Support teams with real resources" },
 ] as const;

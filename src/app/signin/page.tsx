@@ -33,7 +33,7 @@ async function Body({ searchParams }: { searchParams: Promise<{ next?: string; e
         title={paid ? "Payment received. Sign in to continue" : fromPayment ? "Sign in to see your payment" : "Sign in"}
         intro={
           paid
-            ? "Thank you for paying. Sign in with Google to finish your team details (if you haven't yet), attach your payment and submit your idea. It's the last step."
+            ? "Thank you for paying. Sign in with Google to finish your team details (if you haven't yet), attach your payment and submit your idea."
             : fromPayment
               ? "Use the same Google account you registered your team with."
               : undefined
