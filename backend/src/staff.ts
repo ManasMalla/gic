@@ -83,6 +83,13 @@ export async function handleStaff(req: Request, url: URL, email: string): Promis
       return insertApplication({ declaration: "on", ...b }, owner);
     }
   }
+  if (m === "PATCH" && (seg = path.match(/^\/applications\/([^/]+)\/members$/))) {
+    const denied = need("applications");
+    if (denied) return denied;
+    const reference = normalizeReference(decodeURIComponent(seg[1]));
+    if (!reference) return json({ error: "invalid_reference" }, 400);
+    return updateMembers(reference, await body(req), email);
+  }
   if ((seg = path.match(/^\/applications\/([^/]+)(\/deck)?$/))) {
     const denied = need("applications");
     if (denied) return denied;
@@ -268,6 +275,80 @@ async function updateApplication(reference: string, raw: unknown): Promise<Respo
     data: { ...d, ...(d.status === "paid" && !cur.paidAt ? { paidAt: new Date() } : {}), ...(d.ideaTitle !== undefined || d.ideaSummary !== undefined ? { ideaUpdatedAt: new Date() } : {}) },
   });
   return json({ ok: true });
+}
+
+// ---------- team members (admin edits the people on a team) ----------
+
+const SLOTS = ["founder", "cofounder", "member3", "member4", "member5", "member6"] as const;
+const MEMBER_GENDERS = ["female", "male", "other", "prefer-not-to-say"] as const;
+const digits = (v: unknown) => String(v ?? "").replace(/\D/g, "");
+
+const slotSchema = z.object({
+  name: z.string().trim().max(100).default(""),
+  email: z.string().trim().toLowerCase().max(100).default(""),
+  phone: z.string().default("").transform(digits),
+  courseYear: z.string().trim().max(100).default(""),
+  gender: z.union([z.literal(""), z.enum(MEMBER_GENDERS)]).default(""),
+});
+const membersSchema = z.object({ founder: slotSchema, cofounder: slotSchema, member3: slotSchema.optional(), member4: slotSchema.optional(), member5: slotSchema.optional(), member6: slotSchema.optional() });
+type Slot = z.infer<typeof slotSchema>;
+const blankSlot: Slot = { name: "", email: "", phone: "", courseYear: "", gender: "" };
+const isBlank = (p: Slot) => !p.name && !p.email && !p.phone && !p.courseYear && !p.gender;
+
+/**
+ * PATCH /api/staff/applications/:reference/members: replaces the people on a team (Lead, Co-lead, members 3-6).
+ * A member slot left completely blank means "not on the team". Lead and Co-lead can't be removed, only changed.
+ * Rewrites the saved details AND the contact list that sign-in access and payment matching use, in one transaction.
+ */
+async function updateMembers(reference: string, raw: unknown, actor: string): Promise<Response> {
+  const parsed = membersSchema.safeParse(raw ?? {});
+  if (!parsed.success) return json({ error: "validation", errors: issues(parsed.error) }, 422);
+  const app = await prisma.application.findUnique({ where: { reference }, select: { id: true, track: true, data: true } });
+  if (!app) return json({ error: "not_found" }, 404);
+
+  const slots = Object.fromEntries(SLOTS.map((k) => [k, parsed.data[k] ?? blankSlot])) as Record<(typeof SLOTS)[number], Slot>;
+  const errors: Record<string, string> = {};
+  const maxMembers = app.track === "junior" ? 4 : 6;
+  const seen = new Map<string, string>();
+  SLOTS.forEach((k, i) => {
+    const p = slots[k];
+    const required = k === "founder" || k === "cofounder";
+    if (!required && isBlank(p)) return;
+    if (!required && i + 1 > maxMembers) errors[`${k}.name`] = `A ${app.track} team can have at most ${maxMembers} members`;
+    if (!p.name) errors[`${k}.name`] ??= "Name is required";
+    if (!z.email().safeParse(p.email).success) errors[`${k}.email`] = "Enter a valid email address";
+    if (!/^\d{10,15}$/.test(p.phone)) errors[`${k}.phone`] = "Mobile must be 10–15 digits";
+    if (p.email) {
+      if (seen.has(p.email)) errors[`${k}.email`] ??= `Same email as ${seen.get(p.email)}`;
+      seen.set(p.email, k);
+    }
+  });
+  if (Object.keys(errors).length) return json({ error: "validation", errors }, 422);
+
+  const clean = (p: Slot) => ({ name: p.name, courseYear: p.courseYear, email: p.email, phone: p.phone, gender: p.gender });
+  const before = (app.data ?? {}) as Record<string, { email?: string } | undefined>;
+  const next = Object.fromEntries(SLOTS.map((k) => [k, isBlank(slots[k]) ? { ...blankSlot } : clean(slots[k])]));
+  const contacts = SLOTS.filter((k) => !isBlank(slots[k])).map((k) => ({ applicationId: app.id, role: k, email: slots[k].email, phone: slots[k].phone }));
+
+  await prisma.$transaction(async (tx) => {
+    await tx.application.update({ where: { id: app.id }, data: { data: { ...(app.data as object), ...next } as Prisma.InputJsonValue } });
+    await tx.applicationContact.deleteMany({ where: { applicationId: app.id, role: { not: "owner" } } }); // the registering account stays
+    await tx.applicationContact.createMany({ data: contacts });
+  });
+
+  const emails = contacts.map((c) => c.email);
+  // Who else uses these emails? Shown to the admin: the same email on two teams makes payment matching ambiguous.
+  const clash = await prisma.applicationContact.findMany({
+    where: { email: { in: emails }, applicationId: { not: app.id } },
+    select: { email: true, role: true, application: { select: { reference: true, teamName: true } } },
+  });
+  const warnings = clash.map((c) => `${c.email} is also ${c.role === "owner" ? "the sign-in account" : `listed as ${c.role}`} on ${c.application.teamName} (${c.application.reference})`);
+  const reconciled = await reconcilePending(emails); // a payment already waiting for one of these emails can now attach
+  console.log(JSON.stringify({
+    severity: "NOTICE", msg: "team members edited", message: `team members edited: ${reference} by ${actor}`, reference, actor,
+    changed: SLOTS.filter((k) => (before[k]?.email ?? "") !== slots[k].email).map((k) => ({ slot: k, from: before[k]?.email ?? "", to: slots[k].email })),
+  }));
+  return json({ ok: true, warnings, reconciled });
 }
 
 async function deleteApplication(reference: string): Promise<Response> {

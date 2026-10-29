@@ -458,6 +458,65 @@ Deno.test({
       assertEquals([row.hasDeck, row.hasVideoLink, row.hasVideoFile, !!row.submittedAt], [true, true, false, true]);
     });
 
+    await t.step("admin edits the people on a team: change co-lead email, add/remove members, limits, access follows the contacts", async () => {
+      const SUPER = config.superAdminEmails[0];
+      const admin = (path: string, init: RequestInit = {}) => run(path, { ...init, headers: { ...as(SUPER), "content-type": "application/json", ...init.headers } });
+      const lead = `mem-lead-${tag}@example.com`, oldCo = `co-${lead}`, newCo = `newco-${tag}@example.com`, newbie = `newbie-${tag}@example.com`;
+      const ref = await create("main", lead);
+      const person = (name: string, email: string, phone = "9876543210") => ({ name, email, phone, courseYear: "4th year", gender: "female" });
+      const patch = (b: unknown) => admin(`/api/staff/applications/${ref}/members`, { method: "PATCH", body: JSON.stringify(b) });
+      const base = { founder: person("Asha Test", lead), cofounder: person("Ravi Test", oldCo) };
+      const contactsOf = async () => (await prisma.applicationContact.findMany({ where: { application: { reference: ref } }, orderBy: { role: "asc" } })).map((c) => `${c.role}:${c.email}`);
+
+      // 1) change the co-lead's email and add a member (phone is cleaned to digits)
+      const r1 = await patch({ ...base, cofounder: person("Ravi Test", newCo.toUpperCase()), member3: person("New Member", newbie, "+91 98765-43210") });
+      assertEquals([r1.status, (await r1.json()).ok], [200, true]);
+      assertEquals(await contactsOf(), [`cofounder:${newCo}`, `founder:${lead}`, `member3:${newbie}`, `owner:${lead}`]);
+      const row = await prisma.application.findUniqueOrThrow({ where: { reference: ref } });
+      const d = row.data as Record<string, { email: string; phone: string }>;
+      assertEquals([d.cofounder.email, d.member3.email, d.member3.phone], [newCo, newbie, "919876543210"]);
+
+      // access follows the contacts: new co-lead edits, the new member only views, the old co-lead has nothing
+      assertEquals((await me(newCo).then((r) => r.json())).viewerRole, "lead");
+      assertEquals((await me(newbie).then((r) => r.json())).viewerRole, "member");
+      assertEquals((await me(oldCo)).status, 404);
+
+      // 2) remove the member by blanking the slot; lead and co-lead cannot be removed
+      assertEquals((await patch({ ...base, cofounder: person("Ravi Test", newCo) })).status, 200);
+      assertEquals((await contactsOf()).filter((c) => c.startsWith("member")), []);
+      const noLead = await patch({ ...base, founder: { name: "", email: "", phone: "" } });
+      assertEquals(noLead.status, 422);
+      const e = (await noLead.json()).errors;
+      assert(e["founder.name"] && e["founder.email"] && e["founder.phone"]);
+
+      // 3) validation: bad email, short mobile, the same email twice
+      assertEquals((await patch({ ...base, member3: person("X", "not-an-email") })).status, 422);
+      assertEquals((await patch({ ...base, member3: person("X", `x-${tag}@example.com`, "123") })).status, 422);
+      const dup = await patch({ ...base, member3: person("Dup", lead) });
+      assertEquals([dup.status, (await dup.json()).errors["member3.email"]], [422, "Same email as founder"]);
+
+      // 4) a Junior team has room for 4 people only
+      const jRef = await create("junior", `j-${lead}`);
+      const jPatch = (b: unknown) => admin(`/api/staff/applications/${jRef}/members`, { method: "PATCH", body: JSON.stringify(b) });
+      const jBase = { founder: person("A", `j-${lead}`), cofounder: person("B", `co-j-${lead}`) };
+      assertEquals((await jPatch({ ...jBase, member3: person("C", `c-${tag}@x.com`), member4: person("D", `d-${tag}@x.com`) })).status, 200);
+      assertEquals((await jPatch({ ...jBase, member5: person("E", `e-${tag}@x.com`) })).status, 422);
+
+      // 5) warns when an email already sits on another team (still saved: the admin decides)
+      const w = await patch({ ...base, cofounder: person("Ravi Test", newCo), member3: person("Shared", `j-${lead}`) });
+      const wb = await w.json();
+      assertEquals(w.status, 200);
+      assert(wb.warnings.some((x: string) => x.includes(`j-${lead}`) && x.includes(jRef)), JSON.stringify(wb.warnings));
+
+      // 6) only admins: core team and strangers are refused
+      const core = `core-mem-${tag}@example.com`;
+      await admin("/api/staff/users", { method: "PUT", body: JSON.stringify({ email: core, role: "core" }) });
+      const asCore = await run(`/api/staff/applications/${ref}/members`, { method: "PATCH", headers: { ...as(core), "content-type": "application/json" }, body: JSON.stringify(base) });
+      assertEquals(asCore.status, 403);
+      assertEquals((await run(`/api/staff/applications/${ref}/members`, { method: "PATCH", headers: { ...as(`nobody-${tag}@example.com`), "content-type": "application/json" }, body: JSON.stringify(base) })).status, 403);
+      await admin(`/api/staff/users/${encodeURIComponent(core)}`, { method: "DELETE" });
+    });
+
     await t.step("an unmatched payment from my own email is visible to me (so the site can show Pay now as already done)", async () => {
       const email = `paidfirst-${tag}@example.com`;
       assertEquals((await run("/api/me/payment", { headers: as(email) }).then((r) => r.json())).pending, null);

@@ -23,7 +23,9 @@ const msg = (r: { status: number; data: { errors?: Record<string, string>; messa
 
 function done(path: string, ok: boolean, text: string): never {
   revalidatePath("/admin", "layout");
-  redirect(`${path}${path.includes("?") ? "&" : "?"}${ok ? "notice" : "error"}=${encodeURIComponent(text)}`);
+  // A "#anchor" must stay at the very end of the URL, after the query string.
+  const [base, hash] = path.split("#");
+  redirect(`${base}${base.includes("?") ? "&" : "?"}${ok ? "notice" : "error"}=${encodeURIComponent(text)}${hash ? `#${hash}` : ""}`);
 }
 
 const str = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
@@ -91,4 +93,23 @@ export async function dismissPayment(fd: FormData) {
 export async function reconcilePayments() {
   const r = await call("/payments/reconcile", "POST");
   done("/admin/payments", r.ok, r.ok ? `Re-ran matching: ${r.data.matched} payment(s) matched to a team.` : msg(r));
+}
+
+const SLOTS = ["founder", "cofounder", "member3", "member4", "member5", "member6"] as const;
+const SLOT_LABEL: Record<string, string> = { founder: "Lead", cofounder: "Co-lead", member3: "Member 3", member4: "Member 4", member5: "Member 5", member6: "Member 6" };
+
+/** Saves the people on a team. A member slot left empty removes that member. The backend validates and enforces the role (admins only). */
+export async function saveMembers(fd: FormData) {
+  const ref = str(fd, "reference");
+  const body = Object.fromEntries(SLOTS.map((k) => [k, {
+    name: str(fd, `${k}.name`), email: str(fd, `${k}.email`), phone: str(fd, `${k}.phone`), courseYear: str(fd, `${k}.courseYear`), gender: str(fd, `${k}.gender`),
+  }]));
+  const r = await call(`/applications/${encodeURIComponent(ref)}/members`, "PATCH", body);
+  if (r.status === 422 && r.data.errors) {
+    const [field, message] = Object.entries(r.data.errors as Record<string, string>)[0];
+    const [slot, what] = field.split(".");
+    done(`/admin/applications/${ref}#members`, false, `${SLOT_LABEL[slot] ?? slot}, ${what}: ${message}`);
+  }
+  const extra = r.ok && r.data.warnings?.length ? ` Note: ${(r.data.warnings as string[]).join("; ")}.` : "";
+  done(`/admin/applications/${ref}#members`, r.ok, r.ok ? `Team members saved.${extra}` : msg(r));
 }
