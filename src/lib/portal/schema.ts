@@ -3,7 +3,7 @@ import { themes } from "@/content/themes";
 
 export const MAX_DECK_BYTES = 10 * 1024 * 1024;
 export const DECK_TYPES = [".pdf", ".ppt", ".pptx"];
-export const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
+export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 export const VIDEO_TYPES = [".mp4", ".m4v", ".mov", ".webm"];
 
 const text = (label: string, max: number) =>
@@ -37,6 +37,6 @@ export function validateVideo(file: File | null): string | null {
   if (!file || file.size === 0) return "Choose a video file";
   const ext = "." + (file.name.split(".").pop() ?? "").toLowerCase();
   if (!VIDEO_TYPES.includes(ext)) return "Video must be MP4, MOV or WebM";
-  if (file.size > MAX_VIDEO_BYTES) return "Video must be under 25 MB";
+  if (file.size > MAX_VIDEO_BYTES) return "Video must be under 50 MB";
   return null;
 }

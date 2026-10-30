@@ -7,11 +7,30 @@ Deno.test({
   sanitizeOps: false,
   async fn(t) {
     const objects = new Map<string, number>();
+    const uploads = new Map<string, { path: string; parts: Map<number, number> }>();
+    const aborted: string[] = [];
     const server = Deno.serve({ port: 0, onListen: () => {} }, async (req) => {
-      const key = new URL(req.url).pathname;
+      const u = new URL(req.url); const key = u.pathname; const id = u.searchParams.get("uploadId");
+      if (req.method === "POST" && u.searchParams.has("uploads")) {               // CreateMultipartUpload
+        const uid = crypto.randomUUID(); uploads.set(uid, { path: key, parts: new Map() });
+        return new Response(`<InitiateMultipartUploadResult><UploadId>${uid}</UploadId></InitiateMultipartUploadResult>`);
+      }
+      if (req.method === "PUT" && id && u.searchParams.has("partNumber")) {        // UploadPart (parts other than the last must be >= 5 MiB)
+        const n = Number(u.searchParams.get("partNumber")); const size = (await req.arrayBuffer()).byteLength;
+        uploads.get(id)!.parts.set(n, size);
+        return new Response(null, { status: 200, headers: { etag: `"etag-${id.slice(0, 4)}-${n}"` } });
+      }
+      if (req.method === "POST" && id) {                                           // CompleteMultipartUpload
+        const up = uploads.get(id)!; const order = [...up.parts.keys()].sort((a, b) => a - b);
+        order.slice(0, -1).forEach((n) => { if (up.parts.get(n)! < 5 * 1024 * 1024) throw new Error("part too small"); });
+        objects.set(up.path, order.reduce((t, n) => t + up.parts.get(n)!, 0)); uploads.delete(id);
+        return new Response("<CompleteMultipartUploadResult/>");
+      }
+      if (req.method === "DELETE" && id) { aborted.push(id); uploads.delete(id); return new Response(null, { status: 204 }); }
+      if (req.method === "HEAD") return objects.has(key) ? new Response(null, { status: 200, headers: { "content-length": String(objects.get(key)) } }) : new Response(null, { status: 404 });
       if (req.method === "PUT") objects.set(key, (await req.arrayBuffer()).byteLength);
       if (req.method === "DELETE") objects.delete(key);
-      return new Response(null, { status: 200 });
+      return new Response(null, { status: req.method === "PUT" ? 200 : 204 });
     });
     Deno.env.set("R2_ENDPOINT", `http://127.0.0.1:${server.addr.port}`);
     const { config } = await import("./config.ts");
@@ -51,13 +70,13 @@ Deno.test({
       assert(done.submittedAt);
     });
     await t.step("rejects too big and wrong video types", async () => {
-      const big = await video({ name: "big.mp4", bytes: 25 * 1024 * 1024 + 1 });
+      const big = await video({ name: "big.mp4", bytes: 50 * 1024 * 1024 + 1 });
       assertEquals([big.status, (await big.json()).errors.pitchVideo], [422, "too_large"]);
       const bad = await video({ name: "clip.exe", bytes: 1000, type: "application/octet-stream" });
       assertEquals([bad.status, (await bad.json()).errors.pitchVideo], [422, "bad_type"]);
       assertEquals(vids().length, 0);
     });
-    await t.step("accepts up to 25 MB under gic/videos/<ref>/ and exposes the public URL", async () => {
+    await t.step("accepts a single-request video under gic/videos/<ref>/ and exposes the public URL", async () => {
       const ok = await video({ name: "pitch.mp4", bytes: 25 * 1024 * 1024 });
       assertEquals(ok.status, 200);
       const me = await ok.json();
@@ -82,6 +101,60 @@ Deno.test({
       assertEquals((await deck("v2.pdf", 300)).status, 200);
       assertEquals(decks().length, 1);
       assert(!objects.has(before));
+    });
+    await t.step("chunked upload: a 50 MB video is sent in parts, joined by storage, and saved on the team", async () => {
+      const MB = 1024 * 1024;
+      const start = (body: unknown) => run("/api/me/video/start", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+      const part = (q: Record<string, string>, bytes: number, headers: Record<string, string> = {}) =>
+        run(`/api/me/video/part?${new URLSearchParams(q)}`, { method: "PUT", body: new Uint8Array(bytes), headers });
+      const complete = (body: unknown) => run("/api/me/video/complete", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+
+      // limits are checked up front
+      const tooBig = await start({ filename: "huge.mp4", size: 50 * MB + 1, type: "video/mp4" });
+      assertEquals([tooBig.status, (await tooBig.json()).errors.pitchVideo], [422, "too_large"]);
+      const badType = await start({ filename: "clip.exe", size: 1000, type: "application/octet-stream" });
+      assertEquals([badType.status, (await badType.json()).errors.pitchVideo], [422, "bad_type"]);
+
+      // a full 50 MB video: 7 parts of 8 MB, the last one smaller
+      const total = 50 * MB;
+      const st = await start({ filename: "full-pitch.mp4", size: total, type: "video/mp4" });
+      assertEquals(st.status, 200);
+      const { key, uploadId, partBytes } = await st.json();
+      assertEquals(partBytes, 8 * MB);
+      assert(key.startsWith(`gic/videos/${app.reference}/`), key);
+      const parts: { n: number; etag: string }[] = [];
+      for (let n = 1, left = total; left > 0; n++, left -= partBytes) {
+        const r = await part({ key, uploadId, n: String(n) }, Math.min(partBytes, left));
+        assertEquals(r.status, 200);
+        parts.push({ n, etag: (await r.json()).etag });
+      }
+      assertEquals(parts.length, 7);
+      const done = await complete({ key, uploadId, filename: "full-pitch.mp4", type: "video/mp4", parts });
+      assertEquals(done.status, 200);
+      const me = await done.json();
+      assertEquals([me.video.filename, me.video.size], ["full-pitch.mp4", total]);
+      assert(me.video.url.startsWith(`https://files.example.com/gic/videos/${app.reference}/`), me.video.url);
+      assertEquals(vids().map(([, n]) => n), [total]);
+
+      // one team can never touch another team's upload, and bad parts are refused
+      assertEquals((await part({ key: "gic/videos/GIC26-SOMEONE-ELSE/x.mp4", uploadId, n: "1" }, 10)).status, 403);
+      assertEquals((await part({ key: `gic/videos/${app.reference}/../../x`, uploadId, n: "1" }, 10)).status, 403);
+      assertEquals((await part({ key, uploadId, n: "99" }, 10)).status, 400);
+      assertEquals((await part({ key, uploadId, n: "1" }, 10 * MB)).status, 413);
+      assertEquals((await complete({ key: "gic/videos/GIC26-SOMEONE-ELSE/x.mp4", uploadId, filename: "x.mp4", parts })).status, 400);
+
+      // replacing deletes the old object; cancelling an upload aborts it in storage
+      const first = [...objects.keys()].find((k) => k.includes("/videos/"))!;
+      const st2 = await (await start({ filename: "second.webm", size: 6 * MB, type: "video/webm" })).json();
+      const p1 = await (await part({ key: st2.key, uploadId: st2.uploadId, n: "1" }, 6 * MB)).json();
+      assertEquals((await complete({ key: st2.key, uploadId: st2.uploadId, filename: "second.webm", type: "video/webm", parts: [{ n: 1, etag: p1.etag }] })).status, 200);
+      assertEquals(vids().length, 1);
+      assert(!objects.has(first));
+      const st3 = await (await start({ filename: "abandoned.mp4", size: 9 * MB, type: "video/mp4" })).json();
+      await part({ key: st3.key, uploadId: st3.uploadId, n: "1" }, 8 * MB);
+      assertEquals((await run("/api/me/video/abort", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key: st3.key, uploadId: st3.uploadId }) })).status, 200);
+      assert(aborted.includes(st3.uploadId));
+      assertEquals(vids().length, 1); // nothing half-saved
     });
     await t.step("a non-lead member cannot upload or submit", async () => {
       const member = `m-${owner}`;

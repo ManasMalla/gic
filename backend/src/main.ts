@@ -1,5 +1,5 @@
 import { dismissPayment, assignPayment, listPayments } from "./admin.ts";
-import { createApplication, downloadMyDeck, getApplicationStatus, getMyApplication, getMyPendingPayment, getMyReferral, setMyReferral, removeVideo, saveDeck, saveIdea, saveVideo, submitIdea } from "./applications.ts";
+import { createApplication, downloadMyDeck, getApplicationStatus, abortVideoUpload, completeVideoUpload, getMyApplication, getMyPendingPayment, putVideoPart, startVideoUpload, getMyReferral, setMyReferral, removeVideo, saveDeck, saveIdea, saveVideo, submitIdea } from "./applications.ts";
 import { config } from "./config.ts";
 import { migrate, prisma } from "./db.ts";
 import { json } from "./http.ts";
@@ -44,6 +44,10 @@ export async function route(req: Request): Promise<Response> {
     if (m === "GET" && path === "/api/me/deck") return downloadMyDeck(email);
     if (m === "PUT" && path === "/api/me/deck") return saveDeck(req, email);
     if (m === "POST" && path === "/api/me/submit") return submitIdea(email);
+    if (m === "POST" && path === "/api/me/video/start") return startVideoUpload(req, email);
+    if (m === "PUT" && path === "/api/me/video/part") return putVideoPart(req, url, email);
+    if (m === "POST" && path === "/api/me/video/complete") return completeVideoUpload(req, email);
+    if (m === "POST" && path === "/api/me/video/abort") return abortVideoUpload(req, email);
     if (m === "PUT" && path === "/api/me/video") return saveVideo(req, email);
     if (m === "DELETE" && path === "/api/me/video") return removeVideo(email);
     if (m === "PUT" && path === "/api/me/idea") return saveIdea(req, email);

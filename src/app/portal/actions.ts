@@ -89,12 +89,12 @@ const videoMessage = (status: number, body: { error?: string; errors?: Record<st
   if (status === 403) return "Only the Lead, Co-lead or registering account can change the video.";
   if (status === 503) return "Video upload isn't available right now. Please paste a link instead.";
   const e = body.errors?.pitchVideo;
-  if (e === "too_large") return "Video must be under 25 MB";
+  if (e === "too_large") return "Video must be under 50 MB";
   if (e === "bad_type") return "Video must be MP4, MOV or WebM";
   return e ?? null;
 };
 
-/** Step 3: the pitch video: a link, a file (max 25 MB), or both, saved on its own so it never competes with the deck for the size limit. */
+/** Step 3: the pitch video: a link, a file (max 50 MB; the browser sends big files in parts, see lib/portal/upload.ts), or both, saved on its own so it never competes with the deck for the size limit. */
 export async function saveVideo(_prev: SaveIdeaState, formData: FormData): Promise<SaveIdeaState> {
   const user = await getSession();
   if (!user) return { status: "error", errors: {}, message: "Your session expired. Please sign in again." };

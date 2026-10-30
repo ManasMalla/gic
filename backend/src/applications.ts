@@ -4,7 +4,7 @@ import { prisma } from "./db.ts";
 import { FEES_PAISE } from "./fees.ts";
 import { json } from "./http.ts";
 import { reconcilePending } from "./reconcile.ts";
-import { deckKey, deleteObject, publicUrlFor, putObject, storageEnabled, videoKey } from "./storage.ts";
+import { abortMultipart, completeMultipart, createMultipart, deckKey, deleteObject, isOwnVideoKey, objectSize, publicUrlFor, putObject, storageEnabled, uploadPart, videoKey } from "./storage.ts";
 import { generateReference, normalizeReference } from "./reference.ts";
 import { z } from "zod";
 import { ideaSchema, teamSchema } from "./schema.ts";
@@ -374,4 +374,81 @@ export async function setMyReferral(req: Request, email: string): Promise<Respon
   if (current) return json({ linked: false, code: current }); // first valid code wins
   await prisma.accountReferral.upsert({ where: { email }, create: { email, code }, update: { code } });
   return json({ linked: true, code });
+}
+
+// ---------- chunked video upload (up to config.maxVideoBytes, sent in parts so no single request is huge) ----------
+const PART_BYTES = 8 * 1024 * 1024; // the website cuts the file into parts of this size (R2 needs >= 5 MiB except for the last)
+const MAX_PARTS = 12;
+
+const videoMime = (name: string, given: string) => given || (/\.webm$/i.test(name) ? "video/webm" : /\.mov$/i.test(name) ? "video/quicktime" : "video/mp4");
+
+/** POST /api/me/video/start {filename, size, type}: begins an upload and says how big each part must be. */
+export async function startVideoUpload(req: Request, email: string): Promise<Response> {
+  const gate = await editable(email);
+  if (gate.err) return gate.err;
+  if (!storageEnabled()) return json({ error: "video_upload_unavailable" }, 503);
+  const b = await req.json().catch(() => null) as { filename?: unknown; size?: unknown; type?: unknown } | null;
+  const filename = typeof b?.filename === "string" ? b.filename : "";
+  const size = typeof b?.size === "number" ? b.size : 0;
+  const type = typeof b?.type === "string" ? b.type : "";
+  if (!size || size < 1) return json({ error: "validation", errors: { pitchVideo: "Choose a video file" } }, 422);
+  if (size > config.maxVideoBytes) return json({ error: "validation", errors: { pitchVideo: "too_large" } }, 422);
+  if (!VIDEO_EXT.test(filename) || (type && !type.startsWith("video/"))) return json({ error: "validation", errors: { pitchVideo: "bad_type" } }, 422);
+  if (Math.ceil(size / PART_BYTES) > MAX_PARTS) return json({ error: "validation", errors: { pitchVideo: "too_large" } }, 422);
+
+  const key = videoKey(gate.a.reference, filename);
+  const uploadId = await createMultipart(key, videoMime(filename, type), filename, { inline: true });
+  return json({ key, uploadId, partBytes: PART_BYTES });
+}
+
+/** PUT /api/me/video/part?key=&uploadId=&n= (raw bytes of one part). Returns the part's etag. */
+export async function putVideoPart(req: Request, url: URL, email: string): Promise<Response> {
+  const gate = await editable(email);
+  if (gate.err) return gate.err;
+  const key = url.searchParams.get("key") ?? "", uploadId = url.searchParams.get("uploadId") ?? "", n = Number(url.searchParams.get("n"));
+  if (!isOwnVideoKey(key, gate.a.reference)) return json({ error: "forbidden" }, 403);
+  if (!uploadId || !Number.isInteger(n) || n < 1 || n > MAX_PARTS) return json({ error: "bad_request" }, 400);
+  const bytes = new Uint8Array(await req.arrayBuffer());
+  if (bytes.length === 0 || bytes.length > PART_BYTES + 1024 * 1024) return json({ error: "bad_part_size" }, 413);
+  return json({ etag: await uploadPart(key, uploadId, n, bytes) });
+}
+
+/** POST /api/me/video/complete {key, uploadId, filename, type, parts:[{n, etag}]}: joins the parts and saves the video on the team. */
+export async function completeVideoUpload(req: Request, email: string): Promise<Response> {
+  const gate = await editable(email);
+  if (gate.err) return gate.err;
+  const a = gate.a;
+  const b = await req.json().catch(() => null) as { key?: string; uploadId?: string; filename?: string; type?: string; parts?: { n: number; etag: string }[] } | null;
+  const key = b?.key ?? "", uploadId = b?.uploadId ?? "", filename = b?.filename ?? "", parts = b?.parts ?? [];
+  if (!isOwnVideoKey(key, a.reference) || !uploadId || !parts.length || parts.length > MAX_PARTS) return json({ error: "bad_request" }, 400);
+  if (!parts.every((p) => Number.isInteger(p.n) && p.n >= 1 && typeof p.etag === "string" && p.etag.length < 100)) return json({ error: "bad_request" }, 400);
+
+  await completeMultipart(key, uploadId, parts);
+  const size = await objectSize(key);
+  if (size === null || size > config.maxVideoBytes) {
+    await deleteObject(key);
+    return json({ error: "validation", errors: { pitchVideo: "too_large" } }, 422);
+  }
+  const contentType = videoMime(filename, b?.type ?? "");
+  const previous = await prisma.applicationVideo.findUnique({ where: { applicationId: a.id }, select: { objectKey: true } });
+  const row = { filename: filename || "video", contentType, size, objectKey: key, publicUrl: publicUrlFor(key), uploadedAt: new Date() };
+  try {
+    await prisma.applicationVideo.upsert({ where: { applicationId: a.id }, create: { applicationId: a.id, ...row }, update: row });
+    await prisma.application.update({ where: { id: a.id }, data: { ideaUpdatedAt: new Date() } });
+  } catch (e) {
+    await deleteObject(key);
+    throw e;
+  }
+  if (previous && previous.objectKey !== key) await deleteObject(previous.objectKey);
+  await dropSubmissionIfIncomplete(a.id);
+  return getMyApplication(email);
+}
+
+/** POST /api/me/video/abort {key, uploadId}: throws away an upload that failed half way. */
+export async function abortVideoUpload(req: Request, email: string): Promise<Response> {
+  const gate = await editable(email);
+  if (gate.err) return gate.err;
+  const b = await req.json().catch(() => null) as { key?: string; uploadId?: string } | null;
+  if (b?.key && b.uploadId && isOwnVideoKey(b.key, gate.a.reference)) await abortMultipart(b.key, b.uploadId);
+  return json({ ok: true });
 }

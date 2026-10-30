@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
-import { removeVideo, saveAndSubmit, saveIdea, saveVideo, uploadDeck, type SaveIdeaState } from "@/app/portal/actions";
+import { removeVideo, saveAndSubmit, saveIdea, uploadDeck, type SaveIdeaState } from "@/app/portal/actions";
+import { uploadVideoInParts } from "@/lib/portal/upload";
 import { Button } from "@/components/ui/button";
 import { FileField, SelectField, TextAreaField, TextField } from "@/components/register/fields";
 import { themes } from "@/content/themes";
 import type { MyApplication } from "@/lib/backend";
-import { MAX_DECK_BYTES, MAX_VIDEO_BYTES } from "@/lib/portal/schema";
+import { MAX_DECK_BYTES, MAX_VIDEO_BYTES, validateVideo } from "@/lib/portal/schema";
 
 const initial: SaveIdeaState = { status: "idle" };
 const kb = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
@@ -26,17 +27,20 @@ export function IdeaForm({ initialApp, payUrl = null, fee = 0 }: { initialApp: M
 
   const [details, detailsAction, savingDetails] = useActionState(saveIdea, initial);
   const [deckState, deckAction, uploadingDeck] = useActionState(uploadDeck, initial);
-  const [videoState, videoAction, uploadingVideo] = useActionState(saveVideo, initial);
+  // The video FILE goes up in parts (see lib/portal/upload.ts); progress and errors live here, not in a server action.
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [videoError, setVideoError] = useState("");
   const [removeState, removeAction, removing] = useActionState(removeVideo, initial);
   const [submitState, submitAction, submitting] = useActionState(saveAndSubmit, initial);
 
   // Every successful step returns the fresh application: show it, and refresh the server data too.
   useEffect(() => {
-    const latest = [details, deckState, videoState, removeState, submitState]
+    const latest = [details, deckState, removeState, submitState]
       .flatMap((s) => (s.status === "saved" ? [s] : []))
       .sort((a, b) => b.savedAt - a.savedAt)[0];
     if (latest) { setApp(latest.application); router.refresh(); }
-  }, [details, deckState, videoState, removeState, submitState, router]);
+  }, [details, deckState, removeState, submitState, router]);
 
   // A chosen-but-not-uploaded file blocks Submit.
   const [pendingDeck, setPendingDeck] = useState(false);
@@ -45,7 +49,16 @@ export function IdeaForm({ initialApp, payUrl = null, fee = 0 }: { initialApp: M
   const deckForm = useRef<HTMLFormElement>(null);
   const videoForm = useRef<HTMLFormElement>(null);
   useEffect(() => { if (deckState.status === "saved") { setPendingDeck(false); deckForm.current?.reset(); } }, [deckState]);
-  useEffect(() => { if (videoState.status === "saved") { setPendingVideo(false); videoForm.current?.reset(); } }, [videoState]);
+  async function onVideoSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const file = (e.currentTarget.elements.namedItem("pitchVideo") as HTMLInputElement).files?.[0];
+    const err = file ? validateVideo(file) : "Choose a video file";
+    if (!file || err) { setVideoError(err ?? "Choose a video file"); return; }
+    setVideoError(""); setVideoProgress(0); setUploadingVideo(true);
+    const result = await uploadVideoInParts(file, setVideoProgress);
+    setUploadingVideo(false);
+    if (result.ok) { setApp(result.application); setPendingVideo(false); videoForm.current?.reset(); router.refresh(); } else setVideoError(result.message);
+  }
 
   const errors = details.status === "error" ? details.errors : {};
   const idea = app.idea;
@@ -79,7 +92,7 @@ export function IdeaForm({ initialApp, payUrl = null, fee = 0 }: { initialApp: M
   }
 
   const note = (s: SaveIdeaState) => errorOf(s)?.message;
-  const flash = [note(details), note(deckState), note(videoState), note(removeState), note(submitState), blocked].find(Boolean);
+  const flash = [note(details), note(deckState), videoError, note(removeState), note(submitState), blocked].find(Boolean);
 
   return (
     <div className="space-y-8">
@@ -165,13 +178,14 @@ export function IdeaForm({ initialApp, payUrl = null, fee = 0 }: { initialApp: M
               </p>
             )}
             {!readOnly && app.videoUploadAvailable && (
-              <form ref={videoForm} action={videoAction} className="flex flex-wrap items-end gap-3">
+              <form ref={videoForm} onSubmit={onVideoSubmit} className="flex flex-wrap items-end gap-3">
                 <FileField
                   label={app.video ? "Replace video file" : "Upload a video file"} name="pitchVideo" accept="video/mp4,video/quicktime,video/webm,.mp4,.m4v,.mov,.webm" className="min-w-64 flex-1"
-                  error={errorOf(videoState)?.errors.pitchVideo} hint={`MP4, MOV or WebM, up to ${MAX_VIDEO_BYTES / 1024 / 1024} MB.`}
-                  onChange={(e) => { setPendingVideo(!!e.currentTarget.files?.length); setBlocked(""); }}
+                  hint={`MP4, MOV or WebM, up to ${MAX_VIDEO_BYTES / 1024 / 1024} MB.`}
+                  onChange={(e) => { setPendingVideo(!!e.currentTarget.files?.length); setBlocked(""); setVideoError(""); }}
                 />
-                {pendingVideo && <Button type="submit" variant="brand" disabled={uploadingVideo}>{uploadingVideo ? "Uploading…" : "Upload"}</Button>}
+                {pendingVideo && <Button type="submit" variant="brand" disabled={uploadingVideo}>{uploadingVideo ? `Uploading… ${videoProgress}%` : "Upload"}</Button>}
+                {uploadingVideo && <div className="h-2 w-full overflow-hidden rounded-full bg-line" role="progressbar" aria-valuenow={videoProgress} aria-valuemin={0} aria-valuemax={100}><div className="h-full bg-brand transition-[width]" style={{ width: `${videoProgress}%` }} /></div>}
               </form>
             )}
             {!readOnly && app.video && (

@@ -56,7 +56,7 @@ export const process: ProcessGroup[] = [
         body: [
           "Choose your theme and fill in your idea details.",
           "Upload your pitch deck (PDF, PPT or PPTX, up to 10 MB).",
-          "Add a 1-minute pitch video: paste a link or upload a file (up to 25 MB). Then press Submit.",
+          "Add a 1-minute pitch video: paste a link or upload a file (up to 50 MB). Then press Submit.",
         ],
       },
       {
