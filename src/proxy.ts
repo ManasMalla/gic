@@ -13,5 +13,12 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/portal/:path*", "/register/payment", "/register/payment-status"],
+  matcher: [
+    // Server Actions (form submissions, including the deck and video uploads) check the session themselves, so the gate skips
+    // them: it would otherwise buffer the whole upload just to look at a cookie.
+    { source: "/admin/:path*", missing: [{ type: "header", key: "next-action" }] },
+    { source: "/portal/:path*", missing: [{ type: "header", key: "next-action" }] },
+    "/register/payment",
+    "/register/payment-status",
+  ],
 };
