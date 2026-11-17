@@ -13,6 +13,11 @@
   --color-sky: #6090cf;
   --color-cream: #f4e4c9;
   --color-cream-soft: #fcf3e4;
+  /* Night theme (home page): near-black with a green cast, GITAM green as the single accent. */
+  --color-night: #040807;
+  --color-night-2: #08110e;
+  --color-lit: #2ccf90;
+  --color-lit-soft: #7fe3bb;
   --color-ink: #101820;
   --color-muted: #5d6b6a;
   --color-line: #dfe7e5;
@@ -38,6 +43,7 @@
   }
   body {
     background: white;
+    overflow-x: clip;
     color: var(--color-ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -47,7 +53,7 @@
     letter-spacing: -0.01em;
   }
   :focus-visible {
-    outline: 2px solid var(--color-gold);
+    outline: 2px solid var(--color-lit);
     outline-offset: 3px;
   }
   @media (prefers-reduced-motion: reduce) {

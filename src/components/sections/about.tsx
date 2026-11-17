@@ -1,65 +1,60 @@
-import { Compass, Handshake, Layers, MapPin, Rocket, Trophy, type LucideIcon } from "lucide-react";
-import { Section, SectionHeading } from "@/components/ui/section";
-import { aboutHighlights } from "@/content/tracks";
+import { Accent, Section, SectionHeading } from "@/components/ui/section";
+import { aboutBullets, aboutStats } from "@/content/home";
 
-const highlightIcons: LucideIcon[] = [Trophy, Layers, Compass];
-
-function IconTile({ icon: Icon, accent }: { icon: LucideIcon; accent?: boolean }) {
-  return (
-    <span className={`grid size-12 shrink-0 place-items-center rounded-xl ${accent ? "bg-gold text-ink" : "bg-brand/10 text-brand"}`}>
-      <Icon className="size-6" strokeWidth={1.75} aria-hidden />
-    </span>
-  );
-}
+const glass = "rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-sm";
 
 export function About() {
   return (
-    <Section id="about" tone="cream">
-      <div className="grid gap-14 lg:grid-cols-[1fr_1.1fr] lg:gap-20">
+    <Section id="about" tone="night2" className="overflow-hidden">
+      <div className="pointer-events-none absolute right-0 top-0 h-[28rem] w-[28rem] rounded-full bg-lit/10 blur-[120px]" aria-hidden />
+      <div className="relative">
         <SectionHeading
+          tone="night"
           eyebrow="About GIC 2026"
-          title={<>Pitch your idea.<br />Build the future.</>}
-          description="India's premier national-level student venture challenge is back for its 6th edition. GIC 2026 empowers school and college innovators building scalable, sustainable, and resilient solutions for India's future. Building on six years of momentum and thousands of applications from across India, this year's edition brings:"
+          title={<>Think <Accent>beyond</Accent> the ordinary.</>}
+          description="GITAM x Bower Innovation Challenge is India's premier national-level student venture challenge, now in its 6th edition. It empowers school and college innovators building scalable, sustainable and resilient solutions for India's future."
         />
-        <ul className="grid gap-4 self-end sm:grid-cols-3 lg:grid-cols-1">
-          {aboutHighlights.map((h, i) => (
-            <li key={h.title} className="flex gap-4 rounded-card bg-white p-6 shadow-card sm:flex-col lg:flex-row">
-              <IconTile icon={highlightIcons[i]} />
-              <div>
-                <p className="font-display text-2xl font-bold text-brand">{h.title}</p>
-                <p className="mt-1 text-muted">{h.body}</p>
-              </div>
+
+        <article className="relative mt-16 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03] p-8 sm:p-12">
+          <div className="absolute inset-0 [background-image:linear-gradient(rgb(255_255_255/0.035)_1px,transparent_1px),linear-gradient(90deg,rgb(255_255_255/0.035)_1px,transparent_1px)] [background-size:48px_48px]" aria-hidden />
+          <div className="pointer-events-none absolute -right-24 -top-32 size-[34rem] rounded-full border border-lit/25" aria-hidden />
+          <div className="pointer-events-none absolute -right-8 -top-16 size-[30rem] rounded-full border border-white/10" aria-hidden />
+          <div className="relative max-w-3xl">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-lit">The experience</p>
+            <h3 className="mt-5 font-sans text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
+              More Than
+              <br />
+              Just A Competition.
+            </h3>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/60">Every round is built to reveal how students think, adapt, collaborate and perform under pressure.</p>
+          </div>
+          <ol className="relative mt-10 divide-y divide-white/10 border-y border-white/10">
+            {aboutBullets.map((b, i) => (
+              <li key={b.title} className="py-6">
+                <p className="flex items-baseline gap-4 font-sans text-xl font-bold tracking-tight sm:text-2xl">
+                  <span className="text-sm font-bold text-lit">{String(i + 1).padStart(2, "0")}</span>
+                  {b.title}
+                </p>
+                <p className="mt-2 pl-9 text-white/50">{b.body}</p>
+              </li>
+            ))}
+          </ol>
+        </article>
+
+        <ul className="mt-4 grid gap-4 md:grid-cols-3">
+          {aboutStats.map((s) => (
+            <li key={s.label} className={`${glass} p-8`}>
+              <p className="font-sans text-6xl font-extrabold tracking-tight text-lit">{s.value}</p>
+              <p className="mt-4 font-semibold">{s.label}</p>
+              <p className="mt-1 text-sm text-white/50">{s.note}</p>
             </li>
           ))}
         </ul>
-      </div>
 
-      <div className="mt-16 grid gap-6 md:grid-cols-3">
-        <Feature icon={Handshake} eyebrow="More than a competition" title="A journey beyond the pitch">
-          GITAM x Bower Innovation Challenge is more than a pitch deck competition — it connects you directly with
-          founders, early-stage investors, and dedicated venture coaches from day one, with access to inspiring
-          sessions and valuable networks along the way.
-        </Feature>
-        <Feature icon={MapPin} eyebrow="New format" title="Online semi-finals for everyone" accent>
-          Senior Track semi-finals run online on 28 January, so students from every region can pitch to the panels
-          without travelling, ahead of the in-person Grand Finale at GITAM Hyderabad on 12 February.
-        </Feature>
-        <Feature icon={Rocket} eyebrow="Junior Track" title="Before the Grand Finale">
-          This is what sets GITAM x Bower Innovation Challenge apart, making it a unique and impactful experience for
-          everyone involved. Join us in 2026, where your ideas can shape the future and create lasting impact.
-        </Feature>
+        <p className="mt-14 text-balance font-sans text-2xl font-extrabold tracking-tight sm:text-4xl">
+          Built for students who are ready to <Accent>think differently.</Accent>
+        </p>
       </div>
     </Section>
-  );
-}
-
-function Feature({ icon, eyebrow, title, accent, children }: { icon: LucideIcon; eyebrow: string; title: string; accent?: boolean; children: React.ReactNode }) {
-  return (
-    <article className={accent ? "rounded-card bg-forest p-8 text-white" : "rounded-card border border-line bg-white p-8"}>
-      <IconTile icon={icon} accent={accent} />
-      <p className={`mt-5 text-xs font-semibold uppercase tracking-[0.2em] ${accent ? "text-gold" : "text-brand"}`}>{eyebrow}</p>
-      <h3 className="mt-3 font-display text-2xl font-bold">{title}</h3>
-      <p className={`mt-3 leading-relaxed ${accent ? "text-white/80" : "text-muted"}`}>{children}</p>
-    </article>
   );
 }

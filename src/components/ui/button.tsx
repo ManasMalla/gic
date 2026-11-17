@@ -5,9 +5,10 @@ const base =
   "inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 disabled:pointer-events-none disabled:opacity-60";
 
 const variants = {
-  primary: "bg-gold text-ink hover:bg-[#f0c451]",
+  primary: "bg-lit text-night hover:bg-lit-soft",
   brand: "bg-brand text-white hover:bg-brand-dark",
   outline: "border border-current/30 hover:bg-white/10",
+  glass: "border border-white/15 bg-white/[0.06] text-white backdrop-blur hover:bg-white/10",
   ghost: "text-brand hover:bg-brand/10",
 } as const;
 

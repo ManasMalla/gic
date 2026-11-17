@@ -2,51 +2,52 @@ import Image from "next/image";
 import { Suspense } from "react";
 import Link from "next/link";
 import { media } from "@/lib/media";
-import { nav, site } from "@/content/site";
+import { nav } from "@/content/site";
 import { ButtonLink } from "@/components/ui/button";
-import { CountdownBar } from "./countdown-bar";
 import { MobileNav } from "./mobile-nav";
 import { UserMenu } from "./user-menu";
 
-const logo = media("/media/brand/gic-logo.webp");
-const bower = media("/media/logos/bower.webp");
+const logo = media("/media/brand/gic-logo-white.webp");
 
+/** Floating glass bar. The home hero slides up behind it (see Hero); other pages simply start below it. */
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex h-[4.25rem] max-w-7xl items-center justify-between gap-6 px-5 sm:px-8">
-        <div className="flex shrink-0 items-center gap-2.5 sm:gap-3.5">
+    <header className="sticky top-0 z-50 px-3 pt-3 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 rounded-full border border-white/10 bg-night/70 pl-5 pr-2.5 text-white shadow-[0_8px_30px_rgb(0_0_0/0.35)] backdrop-blur-xl">
+        <div className="flex shrink-0 items-center gap-3">
           <Link href="/" aria-label="GITAM Innovation Challenge — home">
-            <Image {...logo} alt="GITAM Innovation Challenge" className="h-10 w-auto sm:h-11" priority />
+            <Image {...logo} alt="GITAM Innovation Challenge" className="h-9 w-auto" priority />
           </Link>
-          <span aria-hidden className="text-lg font-light text-muted">×</span>
-          <Image {...bower} alt="Bower School of Entrepreneurship" className="h-7 w-auto sm:h-9" priority />
+          <span aria-hidden className="text-lg font-light text-white/40">×</span>
+          {/* Plain <img>: next/image does not optimise SVG. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/media/logos/bower-white.svg" alt="Bower School of Entrepreneurship" width={100} height={30} className="h-5 w-auto" />
         </div>
-        <nav aria-label="Primary" className="hidden lg:block">
+        <nav aria-label="Primary" className="hidden xl:block">
           <ul className="flex items-center gap-1">
-            {nav.map((item) => (
+            {nav.map((item, i) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="rounded-full px-4 py-2 text-sm font-medium text-ink/80 transition-colors hover:bg-mint-soft hover:text-brand"
+                  className="group flex items-baseline gap-1.5 rounded-full px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/70 transition-colors hover:bg-white/10 hover:text-white"
                 >
+                  <span className="text-lit/70 group-hover:text-lit">{String(i + 1).padStart(2, "0")}</span>
                   {item.label}
                 </Link>
               </li>
             ))}
           </ul>
         </nav>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Suspense fallback={null}>
             <UserMenu />
           </Suspense>
-          <ButtonLink href="/register" className="px-5 py-2.5 whitespace-nowrap max-sm:hidden">
-            Apply now
+          <ButtonLink href="/register" className="px-5 py-2.5 text-xs uppercase tracking-wider whitespace-nowrap max-sm:hidden">
+            Register ↗
           </ButtonLink>
           <MobileNav items={nav} />
         </div>
       </div>
-      <CountdownBar closesAt={site.registration.closesAt} closesLabel={site.registration.closes} />
     </header>
   );
 }

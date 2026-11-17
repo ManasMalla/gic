@@ -33,11 +33,12 @@ export const site = {
 } as const;
 
 export const nav = [
-  { label: "Home", href: "/#home" },
+  { label: "Legacy", href: "/#legacy" },
   { label: "About", href: "/#about" },
   { label: "Tracks", href: "/#tracks" },
-  { label: "Process", href: "/#process" },
   { label: "Prizes", href: "/#prizes" },
+  { label: "Challenge", href: "/#process" },
+  { label: "Speakers", href: "/#speakers" },
   { label: "FAQ", href: "/#faq" },
   { label: "Sponsors", href: "/sponsors" },
 ] as const;

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Section, SectionHeading } from "@/components/ui/section";
+import { Accent, Section, SectionHeading } from "@/components/ui/section";
 import { Lightbox } from "@/components/ui/lightbox";
 import { gallery } from "@/content/experience";
 import { cn } from "@/lib/cn";
@@ -20,10 +20,11 @@ export function Gallery() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <Section id="gallery" tone="soft" className="overflow-hidden">
+    <Section id="gallery" tone="night" className="overflow-hidden">
       <SectionHeading
+        tone="night"
         eyebrow="Gallery"
-        title="Moments from the GIC journey"
+        title={<>GIC&apos;s <Accent>moments.</Accent></>}
         description="Stages, speakers, students and a lot of ideas. Tap any photo to see it full size."
       />
       <div className="-mx-5 mt-12 space-y-4 sm:-mx-8" aria-label="Photo gallery">
@@ -42,7 +43,7 @@ export function Gallery() {
                       tabIndex={copy === 1 ? -1 : 0}
                       onClick={() => setOpen(idx)}
                       aria-label={`Open photo ${idx + 1} of ${all.length}`}
-                      className={cn("block overflow-hidden rounded-2xl shadow-card")}
+                      className={cn("block overflow-hidden rounded-2xl border border-white/10")}
                     >
                       <Image {...img} alt="" sizes="(max-width:640px) 70vw, 340px" className="h-48 w-auto transition-transform duration-300 hover:scale-105 sm:h-56" />
                     </button>
