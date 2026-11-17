@@ -69,9 +69,9 @@ export function Tracks() {
       </div>
 
       <div className="mt-10 rounded-card bg-mint-soft p-6 text-center sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand">Registration window</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand">Registration closes</p>
         <p className="mt-2 font-display text-2xl font-bold sm:text-3xl">
-          {site.registration.opens} — {site.registration.closes}
+          {site.registration.closes}
           {site.registration.extended && <span className="ml-3 rounded-full bg-gold px-3 py-1 align-middle text-xs font-bold uppercase tracking-wide">Extended</span>}
         </p>
       </div>

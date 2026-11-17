@@ -10,7 +10,7 @@ export const prizeTracks: PrizeTrack[] = [
     title: "Junior Track",
     image: media("/media/brand/award.webp"),
     prizes: [
-      { rank: "Winner", cash: "₹50,000", perks: ["Awarded to the top-scoring school team at the Grand Finale.", "Trophy + Certificate", "Mentorship access from GITAM VDC mentors", "Press feature through GITAM and partner channels"] },
+      { rank: "Winner", cash: "₹50,000", perks: ["Awarded to the top-scoring school team at the Junior Track Final.", "Trophy + Certificate", "Mentorship access from GITAM VDC mentors", "Press feature through GITAM and partner channels"] },
       { rank: "Runner-up", cash: "₹30,000", perks: ["Awarded to the second-best school team.", "Certificate", "Mentorship access to develop the idea beyond the competition"] },
       { rank: "2nd Runner-up", cash: "₹20,000", perks: ["Awarded to the third-best school team.", "Certificate", "Guidance to help the team build on their concept"] },
     ],

@@ -189,7 +189,7 @@ export function FinaleDay() {
   const dots = ["bg-brand", "bg-mint", "bg-gold", "bg-sky", "bg-coral"];
   return (
     <Section tone="dark">
-      <SectionHeading tone="dark" eyebrow="Grand Finale · 11 December 2026" title={<>One stage. <span className="text-gold">16 finalists.</span></>} description="A full day of live pitches, industry conversations, awards and networking at GITAM Hyderabad." />
+      <SectionHeading tone="dark" eyebrow="Grand Finale · 12 February 2027" title={<>One stage. <span className="text-gold">16 finalists.</span></>} description="A full day of live pitches, industry conversations, awards and networking at GITAM Hyderabad." />
       <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_1.4fr]">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-mint">Partner presence on the day</p>

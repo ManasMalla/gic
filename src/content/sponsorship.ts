@@ -6,7 +6,7 @@ export const sponsorHero = {
   eyebrow: "Corporate Partnership · 2026",
   title: "Partner with India's next generation of founders",
   subtitle: "Where school innovators and campus founders turn bold ideas into ventures worth building.",
-  finale: { day: "11", month: "Dec", year: "2026", venue: "GITAM Hyderabad Campus" },
+  finale: { day: "12", month: "Feb", year: "2027", venue: "GITAM Hyderabad Campus" },
 };
 
 export const whyPartner = [
@@ -38,8 +38,8 @@ export const projectedReach = {
   grid: [
     { value: "20+", label: "States" },
     { value: "2", label: "Tracks" },
-    { value: "80", label: "Semi-finalists" },
-    { value: "14", label: "Finalists" },
+    { value: "48", label: "Semi-finalists" },
+    { value: "16", label: "Finalists" },
   ],
   note: "2026 figures are organiser projections until achieved.",
 };

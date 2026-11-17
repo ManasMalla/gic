@@ -6,16 +6,15 @@ export const site = {
   tagline: "Pitch your idea. Build the future.",
   title: "GITAM x Bower Innovation Challenge 2026",
   description:
-    "India's premier national-level student venture challenge. Two tracks, five themes, one Grand Finale at GITAM Hyderabad on 11 December 2026.",
+    "India's premier national-level student venture challenge. Two tracks, five themes, a Junior Track Final on 27 January and a Senior Track Grand Finale at GITAM Hyderabad on 12 February 2027.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   organiser: "Venture Development Centre (VDC), GITAM",
   titleSponsor: "Bower School of Entrepreneurship",
-  grandFinale: { date: "11 December 2026", venue: "GITAM Hyderabad Campus" },
+  grandFinale: { date: "12 February 2027", venue: "GITAM Hyderabad Campus" },
   registration: {
-    opens: "05 Aug 2026",
-    closes: "05 Nov 2026",
+    closes: "06 Jan 2027",
     // Deadline for the header countdown (IST end of day). Change here to move the timer.
-    closesAt: "2026-11-05T23:59:59+05:30",
+    closesAt: "2027-01-06T23:59:59+05:30",
     extended: true,
   },
   contact: {

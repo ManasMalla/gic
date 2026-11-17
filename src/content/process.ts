@@ -5,32 +5,39 @@ const round1: ProcessStep = {
   title: "Round 1: Screening",
   body: [
     "A jury reviews every submission for completeness, relevance and quality of thinking.",
-    "Final submission deadline: 5 November 2026. Results are announced the same day.",
-    "Top 200 teams advance: 100 from the Senior Track and 100 from the Junior Track.",
+    "Final submission deadline: 6 January 2027. Junior Track: the top 30 teams are shortlisted on 6 January.",
+    "Advancing Senior Track teams are told before the bootcamp begins.",
   ],
 };
 const bootcamp: ProcessStep = {
   title: "Round 2: Virtual Bootcamp & Refinement",
   body: [
-    "A virtual bootcamp on 9–11 November covers business model validation, market sizing, financial modelling and pitch skills.",
-    "Every advancing team is paired with a personal mentor to refine their pitch deck, with 4 days after the bootcamp to finish it.",
-    "Round 2 deck deadline: 15 November, 11:59 PM IST. Results on 18 November: the top 40 teams in each track advance.",
+    "A virtual bootcamp on 8–13 January covers business model validation, market sizing, financial modelling and pitch skills.",
+    "Every advancing team is paired with a personal mentor to refine their pitch deck.",
+    "Round 2 submission deadline: 18 January 2027. On 22 January the Senior Track shortlists its top 40 teams and the Junior Track selects its top 8.",
   ],
 };
 const semis: ProcessStep = {
-  title: "Online Semi-Finals",
+  title: "Senior Track Online Semi-Finals",
   body: [
-    "Held online, so teams from every region can take part without travelling: Senior Track on 20 November 2026 and Junior Track on 21 November 2026.",
+    "Held online on 28 January 2027, so teams from every region can take part without travelling.",
     "Each team gets a 20-minute slot: 8 minutes to present, 10 minutes of Q&A with the panel and 2 minutes of buffer. The number of slides is up to you.",
-    "The top 8 Senior Track teams and the top 6 Junior Track teams reach the Grand Finale.",
+    "The top 8 Senior Track teams are selected as finalists on 30 January.",
+  ],
+};
+const juniorFinal: ProcessStep = {
+  title: "Junior Track Final: 27 January 2027",
+  body: [
+    "The top 8 Junior Track teams pitch for the Junior Track title.",
+    "Each team gets 8 minutes to pitch and 10 minutes of Q&A. The number of slides is up to you.",
+    "After the final, Junior Track teams can look forward to an immersion and next-stage opportunity in April–May 2027.",
   ],
 };
 const finale: ProcessStep = {
-  title: "Grand Finale: 11 December 2026",
+  title: "Senior Track Grand Finale: 12 February 2027",
   body: [
     "In person at GITAM Hyderabad, in front of the final jury, investors and the GITAM community.",
-    "Each team gets 8 minutes to pitch and 10 minutes of Q&A. The number of slides is up to you.",
-    "From the 8 Senior Track and 6 Junior Track finalists, the jury selects 6 Senior Track and 4 Junior Track teams (2 from each track are eliminated).",
+    "Each of the 8 finalist teams gets 8 minutes to pitch and 10 minutes of Q&A. The number of slides is up to you.",
   ],
 };
 
@@ -48,7 +55,7 @@ export const process: ProcessGroup[] = [
         body: [
           "Sign in with Google at gic.gitam.edu/register and add your team and members.",
           "Senior Track: 2–6 members. Junior Track: 2–4 members. The Lead and Co-Lead are the primary participants.",
-          "Registration window: 5 August – 5 November 2026.",
+          "Registration closes on 6 January 2027.",
         ],
       },
       {
@@ -70,9 +77,9 @@ export const process: ProcessGroup[] = [
       {
         title: "Edit until the deadline",
         body: [
-          "You can change your idea, deck and video any time until 5 November 2026, 11:59 PM IST.",
+          "You can change your idea, deck and video any time until 6 January 2027, 11:59 PM IST.",
           "The Lead and Co-Lead can edit; every listed member can view the team's submission.",
-          "Round 1 results are announced on 5 November 2026.",
+          "Round 1 results follow on 6 January 2027.",
         ],
       },
     ],
@@ -80,7 +87,7 @@ export const process: ProcessGroup[] = [
   {
     id: "stages",
     label: "Competition stages",
-    summary: "The same journey for both tracks. The only difference is the date of the online semi-finals.",
-    steps: [round1, bootcamp, semis, finale],
+    summary: "Both tracks share Round 1 and the bootcamp. After that, the Junior Track has its own final and the Senior Track goes through online semi-finals to the Grand Finale.",
+    steps: [round1, bootcamp, juniorFinal, semis, finale],
   },
 ];

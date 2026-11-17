@@ -9,7 +9,7 @@ const team = media("/media/gallery/8th-oct/SmartIDEAthon-8th-oct-5.webp");
 
 const facts = [
   { k: "Prize pool & ecosystem value", v: "₹50 Lakh+" },
-  { k: "Grand Finale", v: "11 Dec 2026" },
+  { k: "Grand Finale", v: "12 Feb 2027" },
   { k: "Tracks", v: "Junior · Senior" },
 ] as const;
 

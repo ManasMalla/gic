@@ -25,7 +25,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "Who can participate?",
         "a": [
-          "Junior Track: Students studying in Classes 10–12. Senior Track: Current undergraduate students and eligible recent graduates. Students from recognised institutions across India can participate, subject to the eligibility requirements of the respective track."
+          "Junior Track: Students studying in Classes 10–12. Senior Track: Current undergraduate and postgraduate students and eligible recent graduates. Students from recognised institutions across India can participate, subject to the eligibility requirements of the respective track."
         ]
       },
       {
@@ -49,7 +49,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "What is the Senior Track?",
         "a": [
-          "The Senior Track is designed for undergraduate students and eligible recent graduates working on an idea, prototype, MVP or early-stage venture."
+          "The Senior Track is designed for undergraduate and postgraduate students and eligible recent graduates working on an idea, prototype, MVP or early-stage venture."
         ]
       },
       {
@@ -145,7 +145,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "How can I register?",
         "a": [
-          "Register through the official portal: [Register for GIC 2026](/register). It takes four steps: 1) register your team, 2) submit your idea (details, pitch deck and video) in the team portal, 3) pay the registration fee on GEvents, 4) edit your submission any time until 5 November 2026. Payment is the last step: your entry is confirmed once it goes through."
+          "Register through the official portal: [Register for GIC 2026](/register). It takes four steps: 1) register your team, 2) submit your idea (details, pitch deck and video) in the team portal, 3) pay the registration fee on GEvents, 4) edit your submission any time until 6 January 2027. Payment is the last step: your entry is confirmed once it goes through."
         ]
       },
       {
@@ -199,13 +199,13 @@ export const faq: FaqGroup[] = [
       {
         "q": "What happens after registration?",
         "a": [
-          "Registration and Round 1 screening (deadline and results both on 5 November) → virtual bootcamp with a personal mentor (9–11 November) → Round 2 pitch deck (due 15 November; results 18 November) → online semi-finals (20 November for the Senior Track, 21 November for the Junior Track) → Grand Finale at GITAM Hyderabad on 11 December. Both tracks follow the same stages; only the semi-final dates differ."
+          "Registration closes and Round 1 screening happens on 6 January 2027 → virtual bootcamp with a personal mentor (8–13 January) → Round 2 submission (due 18 January) → shortlists on 22 January (top 40 Senior Track teams, top 8 Junior Track teams). Junior Track: Junior Track Final on 27 January, then an immersion and next-stage opportunity in April–May. Senior Track: online semi-finals on 28 January → top 8 finalists on 30 January → Grand Finale at GITAM Hyderabad on 12 February 2027."
         ]
       },
       {
         "q": "How are teams shortlisted?",
         "a": [
-          "Submissions are reviewed by a jury based on factors such as the quality of the idea, relevance, completeness and quality of thinking. Round 1 results are announced on 5 November 2026, and the top 200 teams advance (100 from each track). After Round 2, the top 40 teams in each track go to the semi-finals."
+          "Submissions are reviewed by a jury based on factors such as the quality of the idea, relevance, completeness and quality of thinking. Round 1 results follow on 6 January 2027; in the Junior Track the top 30 teams are shortlisted. After Round 2, the top 40 Senior Track teams go to the online semi-finals and the top 8 Junior Track teams go to the Junior Track Final."
         ]
       },
       {
@@ -217,7 +217,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "What is the online bootcamp?",
         "a": [
-          "A virtual bootcamp held online on 9–11 November 2026 for the teams that advance from Round 1. Its workshops cover business model validation, market sizing, financial modelling and pitch presentation skills. Teams then have 4 days to refine their pitch deck, and the Round 2 deck is due on 15 November 2026 at 11:59 PM IST."
+          "A virtual bootcamp held online on 8–13 January 2027 for the teams that advance from Round 1. Its workshops cover business model validation, market sizing, financial modelling and pitch presentation skills. Teams then refine their pitch deck with their mentor, and the Round 2 submission is due on 18 January 2027."
         ]
       },
       {
@@ -235,19 +235,19 @@ export const faq: FaqGroup[] = [
       {
         "q": "How do the semi-finals work?",
         "a": [
-          "Semi-finals are online (video conferencing) for both tracks: 20 November 2026 for the Senior Track and 21 November 2026 for the Junior Track. Each team gets a 20-minute slot: 8 minutes to present, 10 minutes of Q&A with the panel and 2 minutes of buffer. The number of slides is up to you. The top 8 Senior Track teams and the top 6 Junior Track teams reach the Grand Finale."
+          "The Senior Track has online semi-finals (video conferencing) on 28 January 2027 for the top 40 teams. Each team gets a 20-minute slot: 8 minutes to present, 10 minutes of Q&A with the panel and 2 minutes of buffer. The number of slides is up to you. The top 8 teams are selected as finalists on 30 January. The Junior Track goes straight from its top 8 selection (22 January) to the Junior Track Final on 27 January."
         ]
       },
       {
         "q": "Will there be regional rounds?",
         "a": [
-          "No. This year both tracks have online semi-finals, so no travel is needed before the Grand Finale."
+          "No. The Senior Track semi-finals are online, so no travel is needed before the Grand Finale."
         ]
       },
       {
         "q": "How many teams reach the Grand Finale?",
         "a": [
-          "14 teams reach the Grand Finale on 11 December 2026: the top 8 from the Senior Track and the top 6 from the Junior Track. From them, the jury selects 6 Senior Track and 4 Junior Track teams (2 from each track are eliminated)."
+          "8 Senior Track teams reach the Grand Finale on 12 February 2027. The Junior Track has its own final on 27 January 2027 with 8 teams."
         ]
       },
       {
@@ -265,7 +265,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "When is the Grand Finale?",
         "a": [
-          "11 December 2026."
+          "The Senior Track Grand Finale is on 12 February 2027. The Junior Track Final is on 27 January 2027."
         ]
       },
       {
@@ -475,7 +475,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "Will the competition be online or offline?",
         "a": [
-          "Everything is online until the finale: registration, screening, the bootcamp, mentoring and the semi-finals. Only the Grand Finale on 11 December is in person, at the GITAM Hyderabad campus."
+          "Everything is online until the finale: registration, screening, the bootcamp, mentoring and the semi-finals. The Senior Track Grand Finale on 12 February 2027 is in person, at the GITAM Hyderabad campus."
         ]
       },
       {

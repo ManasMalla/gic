@@ -41,8 +41,8 @@ export function About() {
           sessions and valuable networks along the way.
         </Feature>
         <Feature icon={MapPin} eyebrow="New format" title="Online semi-finals for everyone" accent>
-          Semi-finals now run online for both tracks (20 and 21 November), so students from every region can pitch to
-          the panels without travelling, ahead of the in-person Grand Finale at GITAM Hyderabad.
+          Senior Track semi-finals run online on 28 January, so students from every region can pitch to the panels
+          without travelling, ahead of the in-person Grand Finale at GITAM Hyderabad on 12 February.
         </Feature>
         <Feature icon={Rocket} eyebrow="Junior Track" title="Before the Grand Finale">
           This is what sets GITAM x Bower Innovation Challenge apart, making it a unique and impactful experience for
