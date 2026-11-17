@@ -69,8 +69,8 @@ export function Legacy() {
             sizes="(min-width:1024px) 50vw, 100vw"
             className={cn(
               "absolute inset-x-0 bottom-0 mx-auto h-[86%] w-auto max-w-full object-contain object-bottom",
-              // The upcoming edition is a black silhouette with a green rim light.
-              e.upcoming && "[filter:brightness(0)_drop-shadow(0_0_1.5px_rgb(44_207_144))_drop-shadow(0_0_28px_rgb(44_207_144/0.35))]",
+              // Editions without a real portrait yet (and the upcoming one) show a black silhouette with a thin rim light.
+              e.silhouette && "[filter:brightness(0)_drop-shadow(0_0_1.5px_rgb(44_207_144))_drop-shadow(0_0_28px_rgb(44_207_144/0.35))]",
             )}
           />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-night via-night/70 to-transparent" aria-hidden />

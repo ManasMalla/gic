@@ -7,11 +7,11 @@ import { media } from "@/lib/media";
 
 /** "The legacy continues": one tab per past edition. */
 export const legacyEditions = [
-  { year: "2023", image: media("/media/legacy/winner-2023-placeholder.png"), upcoming: false, winner: "[Placeholder] Winning team name", note: "[Placeholder] One line about the 2023 winner and their idea." },
-  { year: "2024", image: media("/media/legacy/winner-2024-placeholder.webp"), upcoming: false, winner: "[Placeholder] Winning team name", note: "[Placeholder] One line about the 2024 winner and their idea." },
-  { year: "2025", image: media("/media/legacy/winner-2025-placeholder.png"), upcoming: false, winner: "[Placeholder] Winning team name", note: "[Placeholder] One line about the 2025 winner and their idea." },
+  { year: "2023", image: media("/media/legacy/winner-2023-placeholder.png"), upcoming: false, silhouette: true, winner: "[Placeholder] Winning team name", note: "[Placeholder] One line about the 2023 winner and their idea." },
+  { year: "2024", image: media("/media/legacy/winner-2024-placeholder.webp"), upcoming: false, silhouette: true, winner: "[Placeholder] Winning team name", note: "[Placeholder] One line about the 2024 winner and their idea." },
+  { year: "2025", image: media("/media/legacy/winner-2025-placeholder.png"), upcoming: false, silhouette: false, winner: "[Placeholder] Winning team name", note: "[Placeholder] One line about the 2025 winner and their idea." },
   // The current edition: shown as a silhouette (the person in it is whoever wins).
-  { year: "2026", image: media("/media/legacy/winner-2025-placeholder.png"), upcoming: true, winner: "Are you the one?", note: "The next GIC champion could be you." },
+  { year: "2026", image: media("/media/legacy/winner-2025-placeholder.png"), upcoming: true, silhouette: true, winner: "Are you the one?", note: "The next GIC champion could be you." },
 ] as const;
 
 export const aboutBullets = [
