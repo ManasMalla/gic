@@ -10,13 +10,13 @@ export function Process() {
     <Section id="process" tone="night" className="overflow-hidden">
       <div className="pointer-events-none absolute -left-40 top-20 size-[40rem] rounded-full bg-lit/10 blur-[140px]" aria-hidden />
       <div className="relative">
-        <p className="flex items-center gap-4 text-[11px] font-bold uppercase tracking-[0.35em] text-lit">
+        <p className="flex items-center gap-4 text-sm font-medium text-lit">
           <span>03</span> The challenge <span className="h-px w-28 bg-lit/60" aria-hidden />
         </p>
-        <p className="mt-6 text-sm font-medium uppercase tracking-[0.4em] text-white/50">Three different stages</p>
+        <p className="mt-6 text-sm font-medium text-white/50">Three different stages</p>
 
         <div className="mt-8 grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:items-center">
-          <h2 className="font-sans text-7xl font-extrabold uppercase leading-[0.88] tracking-tight sm:text-9xl">
+          <h2 className="font-display text-7xl font-bold leading-[0.88] tracking-tight sm:text-9xl">
             Think.
             <br />
             Pitch.
@@ -32,10 +32,10 @@ export function Process() {
           {challenges.map((c, i) => (
             <details key={c.title} name="challenge" open={i === 0} className="group">
               <summary className="grid cursor-pointer list-none grid-cols-[3.5rem_1fr_auto] items-center gap-4 py-8 sm:grid-cols-[7rem_1fr_auto] [&::-webkit-details-marker]:hidden">
-                <span className="font-sans text-5xl font-light text-white/35 transition-colors group-open:text-lit sm:text-7xl">{String(i + 1).padStart(2, "0")}</span>
+                <span className="font-display text-5xl font-light text-white/35 transition-colors group-open:text-lit sm:text-7xl">{String(i + 1).padStart(2, "0")}</span>
                 <span>
-                  <span className="block text-[11px] font-bold uppercase tracking-[0.18em] text-white/55">{c.tag}</span>
-                  <span className="mt-1.5 block font-sans text-2xl font-extrabold tracking-tight sm:text-4xl">{c.title}</span>
+                  <span className="block text-sm font-medium text-white/55">{c.tag}</span>
+                  <span className="mt-1.5 block font-display text-2xl font-bold tracking-tight sm:text-4xl">{c.title}</span>
                   <span className="mt-1.5 block text-sm text-white/50">{c.when}</span>
                 </span>
                 <span className="grid size-11 place-items-center rounded-full bg-white/10 text-xl font-bold text-white transition-colors group-open:bg-lit group-open:text-night" aria-hidden>
@@ -48,7 +48,7 @@ export function Process() {
                 <div className="grid gap-10 md:grid-cols-2">
                   {c.columns.map((col) => (
                     <div key={col.heading}>
-                      <h3 className="font-sans text-2xl font-extrabold tracking-tight">{col.heading}</h3>
+                      <h3 className="font-display text-2xl font-bold tracking-tight">{col.heading}</h3>
                       <dl className="mt-4 space-y-2.5 text-[15px]">
                         {col.lines.map(([k, v]) => (
                           <div key={k} className="text-white/60">
@@ -61,7 +61,7 @@ export function Process() {
                   ))}
                 </div>
 
-                <h3 className="mt-10 font-sans text-2xl font-extrabold tracking-tight">{c.listTitle}</h3>
+                <h3 className="mt-10 font-display text-2xl font-bold tracking-tight">{c.listTitle}</h3>
                 <ul className="mt-4 grid gap-x-10 gap-y-2 text-[15px] text-white/60 sm:grid-cols-2">
                   {c.list.map((l) => (
                     <li key={l} className="flex gap-3">
@@ -76,7 +76,7 @@ export function Process() {
                     <strong className="text-white">{c.note[0]} · </strong>
                     {c.note[1]}
                   </p>
-                  <ButtonLink href={c.cta.href} variant="outline" className="border-lit/60 px-5 py-2.5 text-xs uppercase tracking-wider text-white hover:bg-lit/10">
+                  <ButtonLink href={c.cta.href} variant="outline" className="border-lit/60 px-5 py-2.5 text-sm text-white hover:bg-lit/10">
                     {c.cta.label} ↗
                   </ButtonLink>
                 </div>
@@ -87,13 +87,13 @@ export function Process() {
 
         {apply && (
           <div className="mt-24">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-lit">How to apply</p>
+            <p className="text-sm font-medium text-lit">How to apply</p>
             <p className="mt-3 max-w-2xl text-white/55">{apply.summary}</p>
             <ol className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {apply.steps.map((s, i) => (
                 <li key={s.title} className="rounded-3xl border border-white/10 bg-white/[0.04] p-7">
-                  <span className="font-sans text-4xl font-light text-lit">{String(i + 1).padStart(2, "0")}</span>
-                  <h3 className="mt-4 font-sans text-xl font-bold tracking-tight">{s.title}</h3>
+                  <span className="font-display text-4xl font-light text-lit">{String(i + 1).padStart(2, "0")}</span>
+                  <h3 className="mt-4 font-display text-xl font-bold tracking-tight">{s.title}</h3>
                   <ul className="mt-3 space-y-2.5 text-sm text-white/60">
                     {s.body.map((b) => (
                       <li key={b} className="flex gap-2.5 leading-relaxed">

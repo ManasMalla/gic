@@ -18,7 +18,7 @@ export function Videos() {
         {videos.map((v) => <VideoCard key={v.id} {...v} />)}
       </ul>
 
-      <h3 className="mt-20 font-sans text-2xl font-extrabold uppercase tracking-tight">Previous editions</h3>
+      <h3 className="mt-20 font-display text-2xl font-bold tracking-tight">Previous editions</h3>
       <ul className="mt-6 grid gap-6 sm:grid-cols-2">
         {editionVideos.map((e) => (
           <li key={e.href}>
@@ -27,7 +27,7 @@ export function Videos() {
               <span className="absolute inset-0 grid place-items-center bg-ink/30">
                 <span className="grid size-16 place-items-center rounded-full bg-lit text-2xl text-night">▶</span>
               </span>
-              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 p-5 font-sans text-xl font-bold text-white">{e.title}</span>
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 p-5 font-display text-xl font-bold text-white">{e.title}</span>
             </a>
           </li>
         ))}

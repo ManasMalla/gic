@@ -45,7 +45,7 @@ export function MobileNav({ items }: { items: readonly Item[] }) {
                 <Link
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-baseline gap-4 border-b border-white/10 py-4 text-2xl font-extrabold uppercase tracking-tight"
+                  className="flex items-baseline gap-4 border-b border-white/10 py-4 font-display text-2xl font-bold tracking-tight"
                 >
                   <span className="text-xs font-semibold tracking-widest text-lit">{String(i + 1).padStart(2, "0")}</span>
                   {item.label}
@@ -56,9 +56,9 @@ export function MobileNav({ items }: { items: readonly Item[] }) {
           <Link
             href="/register"
             onClick={() => setOpen(false)}
-            className="mt-6 block rounded-full bg-lit px-6 py-3.5 text-center text-sm font-bold uppercase tracking-wider text-night"
+            className="mt-6 block rounded-full bg-lit px-6 py-3.5 text-center text-base font-bold text-night"
           >
-            Register ↗
+            Register
           </Link>
         </nav>
       )}

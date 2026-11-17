@@ -17,13 +17,13 @@ export function SpeakersCarousel() {
               <Image {...g.photo} alt={g.name} sizes="288px" className="aspect-[3/4] w-full object-cover object-top grayscale transition duration-500 group-hover:scale-105 group-hover:grayscale-0" />
               <div className="absolute inset-0 bg-gradient-to-t from-night/90 via-transparent to-transparent" aria-hidden />
             </div>
-            <p className="mt-4 font-sans text-lg font-bold leading-tight tracking-tight">{g.name}</p>
+            <p className="mt-4 font-display text-lg font-bold leading-tight tracking-tight">{g.name}</p>
             {g.role && <p className="mt-1 text-sm leading-snug text-white/55">{g.role}</p>}
           </li>
         ))}
       </ul>
       <div className="mt-6 flex items-center justify-between gap-4">
-        <p className="font-sans text-xl font-extrabold tracking-tight">Different voices. <span className="text-lit">Equal impact.</span></p>
+        <p className="font-display text-xl font-bold tracking-tight">Different voices. <span className="text-lit">Equal impact.</span></p>
         <div className="flex gap-2">
           <button type="button" onClick={() => by(-1)} aria-label="Previous speakers" className="grid size-11 place-items-center rounded-full border border-white/20 hover:bg-white/10">←</button>
           <button type="button" onClick={() => by(1)} aria-label="Next speakers" className="grid size-11 place-items-center rounded-full bg-lit text-night hover:bg-lit-soft">→</button>
