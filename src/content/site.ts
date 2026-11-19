@@ -32,7 +32,6 @@ export const site = {
 } as const;
 
 export const nav = [
-  { label: "Legacy", href: "/#legacy" },
   { label: "About", href: "/#about" },
   { label: "Tracks", href: "/#tracks" },
   { label: "Prizes", href: "/#prizes" },
