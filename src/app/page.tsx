@@ -1,5 +1,4 @@
 import { Contact } from "@/components/sections/contact";
-import { Legacy } from "@/components/sections/legacy";
 import { Stories } from "@/components/sections/stories";
 import { About } from "@/components/sections/about";
 import { CtaBand } from "@/components/sections/cta-band";
@@ -19,7 +18,6 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <Legacy />
       <About />
       <Tracks />
       <Prizes />

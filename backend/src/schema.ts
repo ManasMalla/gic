@@ -22,6 +22,8 @@ export const teamSchema = z.object({
   teamName: text(100),
   referralCode: z.string().trim().max(30).regex(/^[A-Za-z0-9_-]*$/).optional(),
   institution: text(150),
+  /** Junior: the stream (MPC, Commerce…). Senior: the programme (B.Tech, B.Sc…). Free text so "Other" works. */
+  stream: text(80),
   address: text(200),
   cityState: text(100),
   founder: person,

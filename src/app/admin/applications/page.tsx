@@ -33,6 +33,7 @@ async function Body({ searchParams }: { searchParams: Promise<Q> }) {
         <select name="submitted" defaultValue={sp.submitted ?? ""} className={select} aria-label="Submission"><option value="">Submission: any</option><option value="yes">Submitted</option><option value="no">Not submitted</option></select>
         <input name="referral" defaultValue={sp.referral} placeholder="Referral code" className={`${input} w-40 font-mono uppercase`} />
         <button className={btn}>Filter</button>
+        <a href={`/admin/applications/export?${qs}`} className="rounded-full border border-brand px-5 py-2.5 text-sm font-semibold text-brand hover:bg-brand/10" download>Download Excel</a>
         {Object.entries({ q: sp.q, track: sp.track, status: sp.status, referral: sp.referral, deck: sp.deck, video: sp.video, submitted: sp.submitted }).some(([, v]) => v) && (
           <Link href="/admin/applications" className="text-sm font-semibold text-brand underline">Clear filters</Link>
         )}
@@ -70,7 +71,7 @@ async function Body({ searchParams }: { searchParams: Promise<Q> }) {
         <form action={createApplication} className="mt-5 grid gap-3 sm:grid-cols-2">
           <Field name="ownerEmail" label="Sign-in (owner) email" type="email" required />
           <label className="text-sm font-semibold">Track<select name="track" required className={`${select} mt-1 block w-full`}><option value="junior">Junior</option><option value="main">Senior</option></select></label>
-          <Field name="teamName" label="Team name" required /><Field name="institution" label="Institution" required />
+          <Field name="teamName" label="Team name" required /><Field name="institution" label="Institution" required /><Field name="stream" label="Stream (Junior) / Programme (Senior)" required />
           <Field name="address" label="Address" required /><Field name="cityState" label="City & state" required />
           <Field name="referralCode" label="Referral code" />
           <span />

@@ -19,26 +19,28 @@ export function Legacy() {
     return () => clearInterval(id);
   }, [i, paused]);
   return (
-    <Section id="legacy" tone="night" className="overflow-hidden">
+    <Section id="legacy" tone="antique" className="overflow-hidden">
       <div className="contents" onFocus={(ev) => setPaused(ev.target.matches(":focus-visible"))} onBlur={() => setPaused(false)}>
       {/* Concentric arcs behind the heading */}
       <div className="pointer-events-none absolute -left-72 top-1/2 size-[48rem] -translate-y-1/2 rounded-full border border-white/[0.06]" aria-hidden />
       <div className="pointer-events-none absolute -left-52 top-1/2 size-[40rem] -translate-y-1/2 rounded-full border border-white/[0.06]" aria-hidden />
-      <div className="pointer-events-none absolute -left-32 top-1/2 size-[32rem] -translate-y-1/2 rounded-full border border-lit/10" aria-hidden />
+      <div className="pointer-events-none absolute -left-32 top-1/2 size-[32rem] -translate-y-1/2 rounded-full border border-night/10" aria-hidden />
 
       <div className="relative grid min-h-[40rem] gap-10 lg:grid-cols-2 lg:gap-6">
         <div className="flex flex-col justify-center">
-          <p className="flex items-center gap-4 text-[11px] font-semibold uppercase tracking-[0.35em] text-white/80">
-            <span className="h-px w-8 bg-lit" aria-hidden />
-            The legacy
+          <p className="flex">
+            <span className="inline-flex items-center gap-2 rounded-full border-2 border-night-2 bg-white px-3.5 py-1 text-xs font-bold uppercase tracking-[0.14em]">
+              <span className="size-1.5 rounded-full bg-night" aria-hidden />
+              The legacy
+            </span>
           </p>
-          <h2 className="mt-10 font-sans text-6xl font-extrabold leading-[0.95] tracking-tight sm:text-8xl">
+          <h2 className="mt-10 font-display text-6xl font-bold leading-[0.95] tracking-tight sm:text-8xl">
             The legacy
             <br />
             <Accent>continues.</Accent>
           </h2>
-          <p className="mt-8 text-lg text-white/70">Pitch. Build. Lead.</p>
-          <div role="tablist" aria-label="Past editions" className="mt-14 flex gap-2">
+          <p className="mt-8 text-lg text-night-2/70">Pitch. Build. Lead.</p>
+          <div role="tablist" aria-label="Past editions" className="mt-14 flex flex-wrap gap-2">
             {legacyEditions.map((ed, n) => (
               <button
                 key={ed.year}
@@ -47,7 +49,7 @@ export function Legacy() {
                 onClick={() => setI(n)}
                 className={cn(
                   "rounded-full px-6 py-2.5 text-sm font-bold tracking-wider transition-colors",
-                  n === i ? "bg-lit text-night" : "border border-white/15 bg-white/[0.04] text-white/70 hover:bg-white/10",
+                  n === i ? "bg-night text-cream" : "border border-night/15 bg-white text-night-2/70 hover:bg-night/10",
                 )}
               >
                 {ed.year}
@@ -58,7 +60,7 @@ export function Legacy() {
 
         <figure className="relative min-h-[32rem]">
           <p
-            className="pointer-events-none absolute inset-x-0 bottom-[26%] select-none text-center font-sans text-[30vw] font-extrabold leading-[0.85] text-transparent [-webkit-text-stroke:1.5px_rgb(255_255_255/0.2)] lg:text-[14rem]"
+            className="pointer-events-none absolute inset-x-0 bottom-[26%] select-none text-center font-display text-[30vw] font-bold leading-[0.85] text-transparent [-webkit-text-stroke:1.5px_rgb(0_115_103/0.25)] lg:text-[14rem]"
             aria-hidden
           >
             {e.year}
@@ -70,26 +72,26 @@ export function Legacy() {
             className={cn(
               "absolute inset-x-0 bottom-0 mx-auto h-[86%] w-auto max-w-full object-contain object-bottom",
               // Editions without a real portrait yet (and the upcoming one) show a black silhouette with a thin rim light.
-              e.silhouette && "[filter:brightness(0)_drop-shadow(0_0_1.5px_rgb(44_207_144))_drop-shadow(0_0_28px_rgb(44_207_144/0.35))]",
+              e.silhouette && "[filter:brightness(0)_drop-shadow(0_0_1px_rgb(0_115_103))]",
             )}
           />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-night via-night/70 to-transparent" aria-hidden />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-cream via-cream/70 to-transparent" aria-hidden />
           <figcaption className="absolute inset-x-0 bottom-0 z-10">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-lit">{e.upcoming ? "The legacy continues" : `GIC ${e.year} · Winner`}</p>
-            <p className="mt-2 font-sans text-4xl font-extrabold tracking-tight sm:text-5xl">{e.winner}</p>
-            <p className="mt-2 text-sm text-white/60">{e.note}</p>
+            <p className="text-sm font-medium text-night">{e.upcoming ? "The legacy continues" : `GIC ${e.year} · Winner`}</p>
+            <p className="mt-2 font-display text-4xl font-bold tracking-tight sm:text-5xl">{e.winner}</p>
+            <p className="mt-2 text-sm text-night-2/60">{e.note}</p>
           </figcaption>
         </figure>
       </div>
 
-      <dl className="relative mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/10 md:grid-cols-3 lg:grid-cols-6">
+      <dl className="relative mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-3xl border border-night/15 bg-night/15 md:grid-cols-3 lg:grid-cols-6">
         {overviewStats.map((s) => (
-          <div key={s.label} className="bg-night p-6">
-            <dd className="font-sans text-4xl font-extrabold tracking-tight text-lit">
+          <div key={s.label} className="bg-cream p-6">
+            <dd className="font-display text-4xl font-bold tracking-tight text-night">
               {s.value}
               <span className="text-2xl">{s.suffix}</span>
             </dd>
-            <dt className="mt-2 text-sm text-white/55">{s.label}</dt>
+            <dt className="mt-2 text-sm text-night-2/55">{s.label}</dt>
           </div>
         ))}
       </dl>

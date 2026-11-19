@@ -54,10 +54,10 @@ export const challenges = [
   {
     tag: "Round 1 · Online screening",
     title: "Idea Screening",
-    when: "Deadline 6 January 2027",
+    when: "Last date 31 December 2026",
     columns: [
-      { heading: "Junior Track", lines: [["Eligibility", "School students, Classes 10–12"], ["Team size", "2–4 members, same school"], ["Fee", "₹499 per team"], ["Shortlist", "Top 30 teams on 6 January 2027"]] },
-      { heading: "Senior Track", lines: [["Eligibility", "UG and PG students & graduates from 2025 onwards"], ["Team size", "2–6 members"], ["Fee", "₹699 per team"], ["Results", "Advancing teams are told before the bootcamp"]] },
+      { heading: "Junior Track", lines: [["Eligibility", "School students, Classes 10–12"], ["Team size", "2–4 members, same school"], ["Fee", "₹499 per team"], ["Top 100", "Announced on 1 January 2027"]] },
+      { heading: "Senior Track", lines: [["Eligibility", "UG and PG students & graduates from 2025 onwards"], ["Team size", "2–6 members"], ["Fee", "₹699 per team"], ["Top 100", "Announced on 1 January 2027"]] },
     ],
     listTitle: "What the jury looks at",
     list: ["Completeness of the submission", "Relevance of the problem", "Quality of thinking", "Clarity of the pitch deck and video"],
@@ -65,12 +65,12 @@ export const challenges = [
     cta: { label: "Register now", href: "/register" },
   },
   {
-    tag: "Round 2 · Virtual bootcamp",
-    title: "Bootcamp & Pitch Deck",
-    when: "8–13 January 2027 · deck due 18 January",
+    tag: "Round 2 · Bootcamp",
+    title: "Bootcamp & Submissions",
+    when: "5–22 January 2027",
     columns: [
-      { heading: "Junior Track", lines: [["Coaching", "Virtual bootcamp and a personal mentor"], ["Deck deadline", "18 January 2027"], ["Selected", "Top 8 teams on 22 January 2027"]] },
-      { heading: "Senior Track", lines: [["Coaching", "Virtual bootcamp and a personal mentor"], ["Deck deadline", "18 January 2027"], ["Shortlisted", "Top 40 teams on 22 January 2027"]] },
+      { heading: "Junior Track", lines: [["Submission", "Top 100 teams submit by 5 January"], ["Top 30", "Announced on 7 January"], ["Bootcamp", "11–18 January, with a personal mentor"], ["Post-bootcamp submission", "19 January"]] },
+      { heading: "Senior Track", lines: [["Bootcamp", "Top 100 teams, 11–13 January, with a personal mentor"], ["Round 2 submission", "18 January"], ["Top 40", "Announced on 22 January"]] },
     ],
     listTitle: "Bootcamp covers",
     list: ["Business model validation", "Market sizing", "Financial modelling", "Pitch presentation skills"],
@@ -80,10 +80,10 @@ export const challenges = [
   {
     tag: "Finals · Pitch to the jury",
     title: "The Final Stage",
-    when: "27 January – 12 February 2027",
+    when: "22 January – 12 February 2027",
     columns: [
-      { heading: "Junior Track", lines: [["Junior Track Final", "27 January 2027"], ["Teams", "Top 8"], ["After the final", "Immersion and next-stage opportunity, April–May 2027"]] },
-      { heading: "Senior Track", lines: [["Online semi-finals", "28 January 2027 · top 40 teams"], ["Finalists", "Top 8 selected on 30 January"], ["Grand Finale", "12 February 2027 · GITAM Hyderabad"]] },
+      { heading: "Junior Track", lines: [["Top 8 finalists", "Announced on 22 January"], ["Grand Finale", "27 January 2027"]] },
+      { heading: "Senior Track", lines: [["Semi-finals", "28 January 2027 · online · top 40 teams"], ["Top 8 finalists", "Announced on 30 January"], ["Grand Finale", "12 February 2027 · GITAM Hyderabad"]] },
     ],
     listTitle: "Pitch format",
     list: ["8 minutes to pitch", "10 minutes of Q&A with the jury", "Number of slides is up to you"],

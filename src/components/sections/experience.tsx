@@ -3,9 +3,9 @@ import { SpeakersCarousel } from "./speakers-carousel";
 
 export function Experience() {
   return (
-    <Section id="speakers" tone="night2">
+    <Section id="speakers" tone="antique">
       <SectionHeading
-        tone="night"
+        tone="paper"
         eyebrow="GIC experience"
         title={<>Great <Accent>speakers.</Accent></>}
         description="The founders, investors and educators who have shaped the GITAM Innovation Challenge."

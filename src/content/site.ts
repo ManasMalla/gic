@@ -4,18 +4,17 @@ export const site = {
   shortName: "GIC",
   edition: "2026",
   tagline: "Pitch your idea. Build the future.",
-  title: "GITAM x Bower Innovation Challenge 2026",
+  title: "GITAM Innovation Challenge 2026",
   description:
-    "India's premier national-level student venture challenge. Two tracks, five themes, a Junior Track Final on 27 January and a Senior Track Grand Finale at GITAM Hyderabad on 12 February 2027.",
+    "India's premier national-level student venture challenge. Two tracks, five themes, a Junior Track Grand Finale on 27 January and a Senior Track Grand Finale at GITAM Hyderabad on 12 February 2027.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   organiser: "Venture Development Centre (VDC), GITAM",
-  titleSponsor: "Bower School of Entrepreneurship",
   grandFinale: { date: "12 February 2027", venue: "GITAM Hyderabad Campus" },
   registration: {
-    closes: "06 Jan 2027",
+    closes: "31 Dec 2026",
     // Deadline for the header countdown (IST end of day). Change here to move the timer.
-    closesAt: "2027-01-06T23:59:59+05:30",
-    extended: true,
+    closesAt: "2026-12-31T23:59:59+05:30",
+    extended: false,
   },
   contact: {
     email: "gic@gitam.edu",
@@ -33,7 +32,6 @@ export const site = {
 } as const;
 
 export const nav = [
-  { label: "Legacy", href: "/#legacy" },
   { label: "About", href: "/#about" },
   { label: "Tracks", href: "/#tracks" },
   { label: "Prizes", href: "/#prizes" },

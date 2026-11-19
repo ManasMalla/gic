@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { OTHER_STREAM } from "./streams";
 
 export const TRACKS = ["junior", "main"] as const;
 export const GENDERS = ["female", "male", "other", "prefer-not-to-say"] as const;
@@ -33,6 +34,7 @@ export const stepSchemas = {
     teamName: text("Team name", 100),
     referralCode: z.string().trim().max(30, "At most 30 characters").regex(/^[A-Za-z0-9_-]*$/, "Letters, numbers, - and _ only").optional(),
     institution: text("Institution", 150),
+    stream: text("Stream / programme", 80),
     address: text("Address", 200),
     cityState: text("City & state", 100),
   }),
@@ -67,6 +69,8 @@ export function parseFormData(fd: FormData) {
     teamName: get("teamName"),
     referralCode: get("referralCode"),
     institution: get("institution"),
+    // "Other" is typed in by the applicant: keep what they wrote.
+    stream: get("stream") === OTHER_STREAM ? `${OTHER_STREAM}: ${get("streamOther").trim()}`.slice(0, 80) : get("stream"),
     address: get("address"),
     cityState: get("cityState"),
     founder: mem("founder"),

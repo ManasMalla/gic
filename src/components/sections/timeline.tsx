@@ -3,7 +3,7 @@ import { juniorTimeline, type Milestone, seniorTimeline, timeline } from "@/cont
 
 export function Timeline() {
   return (
-    <Section id="timeline" tone="night2" className="overflow-hidden">
+    <Section id="timeline" tone="night" className="overflow-hidden">
       <SectionHeading
         tone="night"
         eyebrow="GIC 2026 journey"
@@ -13,11 +13,11 @@ export function Timeline() {
       <Rows items={timeline} />
       <div className="mt-14 grid gap-12 lg:grid-cols-2 lg:gap-8">
         <div>
-          <h3 className="font-sans text-2xl font-extrabold uppercase tracking-tight">Junior <Accent>Track</Accent></h3>
+          <h3 className="font-display text-2xl font-bold tracking-tight">Junior <Accent>Track</Accent></h3>
           <Rows items={juniorTimeline} />
         </div>
         <div>
-          <h3 className="font-sans text-2xl font-extrabold uppercase tracking-tight">Senior <Accent>Track</Accent></h3>
+          <h3 className="font-display text-2xl font-bold tracking-tight">Senior <Accent>Track</Accent></h3>
           <Rows items={seniorTimeline} />
         </div>
       </div>
@@ -32,13 +32,13 @@ function Rows({ items }: { items: Milestone[] }) {
         <li key={m.title} className="relative">
           <span className="absolute -left-[2.55rem] top-7 size-3 rounded-full bg-lit shadow-[0_0_0_4px_rgb(8_17_14),0_0_16px_rgb(44_207_144/0.8)] sm:-left-[3.05rem]" aria-hidden />
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-lit">{m.stage}</p>
-            <h3 className="mt-1.5 font-sans text-xl font-bold tracking-tight">
+            <p className="text-sm font-medium text-lit">{m.stage}</p>
+            <h3 className="mt-1.5 font-display text-xl font-bold tracking-tight">
               {m.title}
               {m.badge && <span className="ml-3 rounded-full bg-lit px-2.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wider text-night">{m.badge}</span>}
             </h3>
             {m.note && <p className="mt-1 text-sm text-white/55">{m.note}</p>}
-            <p className="mt-3 font-sans text-lg font-semibold text-white">{m.date}</p>
+            <p className="mt-3 font-display text-lg font-semibold text-white">{m.date}</p>
           </div>
         </li>
       ))}

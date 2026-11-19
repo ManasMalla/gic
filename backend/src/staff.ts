@@ -83,6 +83,7 @@ export async function handleStaff(req: Request, url: URL, email: string): Promis
       return insertApplication({ declaration: "on", ...b }, owner);
     }
   }
+  if (m === "GET" && path === "/applications/export") return need("applications") ?? exportApplications(url);
   if (m === "PATCH" && (seg = path.match(/^\/applications\/([^/]+)\/members$/))) {
     const denied = need("applications");
     if (denied) return denied;
@@ -198,7 +199,8 @@ async function deleteReferral(code: string): Promise<Response> {
 
 // ---------- applications / submissions ----------
 
-async function listApplications(url: URL): Promise<Response> {
+/** The filters shared by the applications list and the Excel export. */
+function applicationFilters(url: URL): Prisma.ApplicationWhereInput {
   const q = url.searchParams.get("q")?.trim();
   const track = url.searchParams.get("track");
   const status = url.searchParams.get("status");
@@ -206,7 +208,6 @@ async function listApplications(url: URL): Promise<Response> {
   const deck = url.searchParams.get("deck");           // yes | no
   const video = url.searchParams.get("video");         // any | none | link | file
   const submitted = url.searchParams.get("submitted"); // yes | no
-  const page = Math.max(1, Number(url.searchParams.get("page") ?? 1) || 1);
 
   const hasLink: Prisma.ApplicationWhereInput = { AND: [{ pitchVideoLink: { not: null } }, { pitchVideoLink: { not: "" } }] };
   const noLink: Prisma.ApplicationWhereInput = { OR: [{ pitchVideoLink: null }, { pitchVideoLink: "" }] };
@@ -220,7 +221,7 @@ async function listApplications(url: URL): Promise<Response> {
   if (submitted === "yes") and.push({ submittedAt: { not: null } });
   if (submitted === "no") and.push({ submittedAt: null });
 
-  const where: Prisma.ApplicationWhereInput = {
+  return {
     ...(track === "junior" || track === "main" ? { track } : {}),
     ...(status === "awaiting_payment" || status === "paid" || status === "refunded" ? { status } : {}),
     ...(code ? { referralCode: code } : {}),
@@ -231,6 +232,11 @@ async function listApplications(url: URL): Promise<Response> {
       { ideaTitle: { contains: q, mode: "insensitive" } },
     ] } : {}),
   };
+}
+
+async function listApplications(url: URL): Promise<Response> {
+  const where = applicationFilters(url);
+  const page = Math.max(1, Number(url.searchParams.get("page") ?? 1) || 1);
   const pageSize = 50;
   const [total, rows] = await Promise.all([
     prisma.application.count({ where }),
@@ -242,6 +248,23 @@ async function listApplications(url: URL): Promise<Response> {
   return json({
     total, page, pageSize,
     applications: rows.map(({ file, video: vf, pitchVideoLink, ...a }) => ({ ...a, hasDeck: !!file, hasVideoFile: !!vf, hasVideoLink: !!pitchVideoLink })),
+  });
+}
+
+/** GET /api/staff/applications/export: every application matching the list filters, with the full idea, team and payment, for the Excel download. */
+async function exportApplications(url: URL): Promise<Response> {
+  const rows = await prisma.application.findMany({
+    where: applicationFilters(url),
+    orderBy: { createdAt: "asc" },
+    select: {
+      reference: true, teamName: true, track: true, status: true, createdAt: true, paidAt: true, institution: true, theme: true,
+      ideaTitle: true, problemStatement: true, ideaSummary: true, pitchVideoLink: true, submittedAt: true, referralCode: true, ownerEmail: true, data: true,
+      file: { select: { publicUrl: true } }, video: { select: { publicUrl: true } },
+      payments: { where: { eventType: "payment.succeeded" }, orderBy: { occurredAt: "asc" }, take: 1, select: { amount: true } },
+    },
+  });
+  return json({
+    applications: rows.map(({ file, video, payments, ...a }) => ({ ...a, deckUrl: file?.publicUrl ?? null, videoFileUrl: video?.publicUrl ?? null, paidAmount: payments[0]?.amount ?? null })),
   });
 }
 

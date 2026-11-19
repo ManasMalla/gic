@@ -3,16 +3,17 @@ import { media } from "@/lib/media";
 // NOTE: names are inferred from the original logo filenames — please review.
 export type Partner = {
   name: string; src: string; width: number; height: number;
+  sponsorsOnly?: boolean; // shown on the sponsors page only, not on the home page
   href?: string;   // tile links out to the partner's site (new tab)
   maxH?: number;   // px cap on this logo's height (use for tall marks that crowd the tile)
   shiftX?: number; // optical centring: % of the logo's own width to move right (+) / left (-)
 };
 
-const logo = (file: string, name: string, opts: Pick<Partner, "href" | "maxH" | "shiftX"> = {}): Partner => ({ name, ...media(`/media/logos/${file}.webp`), ...opts });
+const logo = (file: string, name: string, opts: Pick<Partner, "href" | "maxH" | "shiftX" | "sponsorsOnly"> = {}): Partner => ({ name, ...media(`/media/logos/${file}.webp`), ...opts });
 
 export const partners: Partner[] = [
   logo("gitam-logos-header", "GITAM"),
-  logo("bower", "Bower School of Entrepreneurship"),
+  logo("bower", "Bower School of Entrepreneurship", { sponsorsOnly: true }),
   logo("gitamvdc", "GITAM Venture Development Centre"),
   logo("gitamit", "GITAM i-TBI"),
   logo("e-club", "E-Club"),

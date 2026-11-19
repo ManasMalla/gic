@@ -4,7 +4,7 @@
 @theme {
   --color-brand: #007367;
   --color-brand-dark: #005a50;
-  --color-forest: #00473f;
+  --color-forest: #004740;
   --color-forest-deep: #003630;
   --color-mint: #8ecdb8;
   --color-mint-soft: #eef5f3;
@@ -13,11 +13,14 @@
   --color-sky: #6090cf;
   --color-cream: #f4e4c9;
   --color-cream-soft: #fcf3e4;
-  /* Night theme (home page): near-black with a green cast, GITAM green as the single accent. */
-  --color-night: #040807;
-  --color-night-2: #08110e;
-  --color-lit: #2ccf90;
-  --color-lit-soft: #7fe3bb;
+  /* Page theme from the GITAM brand guidelines (2024-25): GITAM green is the base, antique white the accent. */
+  --color-night: #007367; /* GITAM green (Pantone 328 C) */
+  --color-night-2: #004740; /* dark green */
+  --color-lit: #f4e4c9; /* antique white */
+  --color-lit-soft: #8bcbb7; /* light green */
+  --color-antique-gold: #a58255;
+  --color-accent: #e0b541; /* mellow yellow: highlighter underline, small tags */
+  --color-beige: #ccba8d;
   --color-ink: #101820;
   --color-muted: #5d6b6a;
   --color-line: #dfe7e5;
@@ -53,8 +56,12 @@
     letter-spacing: -0.01em;
   }
   :focus-visible {
-    outline: 2px solid var(--color-lit);
+    outline: 2px solid var(--color-brand);
     outline-offset: 3px;
+  }
+  .on-dark :focus-visible,
+  .on-dark:focus-visible {
+    outline-color: var(--color-lit);
   }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
@@ -63,6 +70,24 @@
 }
 
 @layer utilities {
+  /* VDC design system: "sticker" cards (2px ink border, 22px radius, hard offset shadow) and a faint grid-paper page. */
+  .sticker {
+    border: 2px solid var(--color-night-2);
+    border-radius: 22px;
+    box-shadow: 4px 4px 0 var(--color-night-2);
+  }
+  .sticker-sm {
+    border: 2px solid var(--color-night-2);
+    border-radius: 14px;
+    box-shadow: 3px 3px 0 var(--color-night-2);
+  }
+  .grid-paper {
+    background-color: #fff;
+    background-image:
+      linear-gradient(rgb(0 71 64 / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(0 71 64 / 0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
   /* Brand triangle pattern used on the hero & dark sections */
   .bg-triangles {
     background-image:

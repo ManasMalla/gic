@@ -19,9 +19,9 @@ export function Themes() {
   }, [theme]);
 
   return (
-    <Section id="themes" tone="night2">
+    <Section id="themes" tone="paper">
       <SectionHeading
-        tone="night"
+        tone="paper"
         eyebrow="GIC 2026"
         title={<>Innovation <Accent>themes</Accent></>}
         description="Explore the key areas of innovation shaping the GIC 2026 challenge. Select a theme to learn more."
@@ -32,14 +32,14 @@ export function Themes() {
             <button
               type="button"
               onClick={() => setActive(i)}
-              className="group flex h-full w-full items-center gap-5 rounded-3xl border border-white/10 bg-white/[0.04] p-5 text-left transition hover:-translate-y-1 hover:border-lit/40 hover:bg-white/[0.07]"
+              className="group flex h-full w-full items-center gap-5 sticker bg-white p-5 text-left transition hover:-translate-y-1 hover:border-lit/40 hover:bg-white/[0.07]"
             >
               <Image {...t.image} alt="" sizes="96px" className="size-24 shrink-0 rounded-2xl ring-1 ring-white/10" />
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-lit">Theme 0{i + 1}</p>
-                <h3 className="mt-1 font-sans text-lg font-bold leading-tight tracking-tight">{t.name}</h3>
-                <p className="mt-1 text-sm text-white/55">{t.subtitle}</p>
-                <span className="mt-3 inline-block text-sm font-semibold text-lit group-hover:underline">Learn more →</span>
+                <p className="text-sm font-medium text-night">Theme 0{i + 1}</p>
+                <h3 className="mt-1 font-display text-lg font-bold leading-tight tracking-tight">{t.name}</h3>
+                <p className="mt-1 text-sm text-night-2/55">{t.subtitle}</p>
+                <span className="mt-3 inline-block text-sm font-semibold text-night group-hover:underline">Learn more →</span>
               </div>
             </button>
           </li>
@@ -51,7 +51,7 @@ export function Themes() {
         onClose={() => setActive(null)}
         onClick={(e) => e.target === dialog.current && setActive(null)}
         aria-labelledby="theme-title"
-        className="m-auto w-[min(92vw,56rem)] overflow-hidden rounded-[1.75rem] border border-white/10 bg-night-2 p-0 text-white backdrop:bg-black/80 backdrop:backdrop-blur-sm"
+        className="m-auto w-[min(92vw,56rem)] overflow-hidden on-dark rounded-[1.75rem] border border-night-2/20 bg-night-2 p-0 text-night-2 backdrop:bg-black/80 backdrop:backdrop-blur-sm"
       >
         {theme && (
           <div className="grid md:grid-cols-[16rem_1fr]">
@@ -59,13 +59,13 @@ export function Themes() {
               <Image {...theme.image} alt="" sizes="176px" className="size-44 rounded-2xl" />
             </div>
             <div className="p-8 sm:p-10">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-lit">Innovation theme</p>
-              <h3 id="theme-title" className="mt-2 font-sans text-3xl font-extrabold uppercase tracking-tight">{theme.name}</h3>
-              <p className="mt-1 font-medium text-white/55">{theme.subtitle}</p>
-              <p className="mt-5 leading-relaxed text-white/75">{theme.description}</p>
+              <p className="text-sm font-medium text-night">Innovation theme</p>
+              <h3 id="theme-title" className="mt-2 font-display text-3xl font-bold tracking-tight">{theme.name}</h3>
+              <p className="mt-1 font-medium text-night-2/55">{theme.subtitle}</p>
+              <p className="mt-5 leading-relaxed text-night-2/75">{theme.description}</p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <ButtonLink href="/register">Register now</ButtonLink>
-                <button type="button" onClick={() => setActive(null)} className="rounded-full px-6 py-3 text-sm font-semibold text-white/60 hover:bg-white/10">
+                <button type="button" onClick={() => setActive(null)} className="rounded-full px-6 py-3 text-sm font-semibold text-night-2/60 hover:bg-cream">
                   Close
                 </button>
               </div>

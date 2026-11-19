@@ -15,7 +15,7 @@ const person = (n: string, e: string) => ({ name: n, courseYear: "Class 11", ema
 const blank = { name: "", courseYear: "", email: "", phone: "", gender: "" };
 function teamData(track: "junior" | "main", leadEmail: string) {
   return {
-    track, teamName: "Team " + leadEmail, institution: "School", address: "1 Road", cityState: "Hyderabad, TS",
+    track, teamName: "Team " + leadEmail, institution: "School", stream: track === "junior" ? "Science (MPC)" : "B.Tech", address: "1 Road", cityState: "Hyderabad, TS",
     founder: person("Asha Test", leadEmail), cofounder: person("Ravi Test", "co-" + leadEmail),
     member3: blank, member4: blank, member5: blank, member6: blank, declaration: "on",
   };
@@ -174,13 +174,22 @@ Deno.test({
       assertEquals([body.error, body.reference], ["already_registered", first]);
     });
 
-    await t.step("portal flow: edit and submit first, pay last, locked after the deadline", async () => {
+    await t.step("portal flow: pay first, then the idea is unlocked; locked again after the deadline", async () => {
       const email = `portal-${tag}@example.com`;
       const r = await create("junior", email);
 
       const before = await (await me(email)).json();
-      assertEquals([before.status, before.canEditIdea, before.ideaComplete], ["awaiting_payment", true, false]); // editable before paying
+      assertEquals([before.status, before.canEditIdea, before.ideaNeedsPayment, before.ideaComplete], ["awaiting_payment", false, true, false]); // locked until paid
+      assertEquals(before.team.stream, "Science (MPC)");
+      const locked = await saveIdea(email, ideaForm(idea()));
+      assertEquals([locked.status, (await locked.json()).error], [403, "payment_required"]);
+      assertEquals([(await saveDeck(email)).status, (await submit(email)).status], [403, 403]);
       assertEquals([before.founder.name, before.founder.email, before.founder.phone, before.founder.gender], ["Asha Test", email, "9876543210", "female"]);
+
+      // the payment arrives (step 3): the idea unlocks
+      await webhook({ reference: r });
+      const unlocked = await (await me(email)).json();
+      assertEquals([unlocked.status, unlocked.canEditIdea, unlocked.ideaNeedsPayment], ["paid", true, false]);
 
       assertEquals((await saveIdea(email, ideaForm(idea({ theme: "not-a-theme" })))).status, 422);
       // 1) details only: fine without a deck, but the team is not complete and cannot submit yet
@@ -199,12 +208,7 @@ Deno.test({
       // 3) final submit
       const done = await (await submit(email)).json();
       assert(done.submittedAt);
-      assertEquals(done.status, "awaiting_payment"); // submitted, not yet paid
-
-      // ...then the payment arrives (last step): the team is paid and its submission is untouched
-      await webhook({ reference: r });
-      const paid = await (await me(email)).json();
-      assertEquals([paid.status, !!paid.submittedAt, paid.idea.ideaTitle], ["paid", true, "First title"]);
+      assertEquals(done.status, "paid");
 
       // Editing afterwards keeps it submitted; the stored deck is kept.
       const edited = await (await saveIdea(email, ideaForm(idea({ ideaTitle: "Second title" }), false))).json();

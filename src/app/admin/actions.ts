@@ -64,7 +64,7 @@ export async function createApplication(fd: FormData) {
   const person = (p: string) => ({ name: str(fd, `${p}Name`), courseYear: str(fd, `${p}Course`), email: str(fd, `${p}Email`), phone: str(fd, `${p}Phone`), gender: str(fd, `${p}Gender`) });
   const blank = { name: "", courseYear: "", email: "", phone: "", gender: "" };
   const r = await call("/applications", "POST", {
-    ownerEmail: str(fd, "ownerEmail"), track: str(fd, "track"), teamName: str(fd, "teamName"), institution: str(fd, "institution"),
+    ownerEmail: str(fd, "ownerEmail"), track: str(fd, "track"), teamName: str(fd, "teamName"), institution: str(fd, "institution"), stream: str(fd, "stream"),
     address: str(fd, "address"), cityState: str(fd, "cityState"), referralCode: str(fd, "referralCode"),
     founder: person("founder"), cofounder: person("cofounder"), member3: blank, member4: blank, member5: blank, member6: blank,
   });

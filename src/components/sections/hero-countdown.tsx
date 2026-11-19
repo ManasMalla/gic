@@ -9,7 +9,7 @@ function parts(ms: number) {
   return { Days: Math.floor(s / 86400), Hours: Math.floor((s % 86400) / 3600), Minutes: Math.floor((s % 3600) / 60), Seconds: s % 60 };
 }
 
-/** Big countdown to the registration deadline. */
+/** Countdown to the registration deadline, as antique-white chips on green. */
 export function HeroCountdown({ closesAt }: { closesAt: string }) {
   const target = new Date(closesAt).getTime();
   // null until mounted so server HTML and first client render match (no hydration mismatch)
@@ -27,17 +27,17 @@ export function HeroCountdown({ closesAt }: { closesAt: string }) {
 
   const left = now === null ? null : target - now;
   if (left !== null && left <= 0) {
-    return <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">Registration is now closed</p>;
+    return <p className="text-lg font-bold text-night-2">Registration is now closed</p>;
   }
   const t = left === null ? null : parts(left);
 
   return (
     <div role="timer" aria-label={t ? `${t.Days} days ${t.Hours} hours ${t.Minutes} minutes ${t.Seconds} seconds left` : "Time left"}>
-      <div className="grid grid-cols-4 gap-3 sm:gap-8">
+      <div className="mx-auto grid max-w-md grid-cols-4 gap-3">
         {(["Days", "Hours", "Minutes", "Seconds"] as const).map((k) => (
-          <div key={k} className="text-center">
-            <p className="font-sans text-4xl font-extrabold tabular-nums leading-none sm:text-7xl">{t ? pad(t[k]) : "--"}</p>
-            <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/50">{k}</p>
+          <div key={k} className="sticker-sm bg-white px-2 py-3 text-center text-night-2">
+            <p className="font-display text-3xl font-bold tabular-nums leading-none sm:text-4xl">{t ? pad(t[k]) : "--"}</p>
+            <p className="mt-1.5 text-[11px] font-semibold text-night-2/70">{k}</p>
           </div>
         ))}
       </div>

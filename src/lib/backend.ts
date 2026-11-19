@@ -7,7 +7,7 @@ export type MyApplication = {
   amountDue: number; // paise
   createdAt: string;
   paidAt: string | null;
-  team: { teamName: string; institution: string };
+  team: { teamName: string; institution: string; stream: string | null };
   founderEmail: string | null;
   founder: { name: string | null; email: string | null; phone: string | null; gender: string | null } | null;
   lastPayment: { type: "payment.succeeded" | "payment.failed" | "payment.refunded"; at: string } | null;
@@ -22,6 +22,8 @@ export type MyApplication = {
   ideaUpdatedAt: string | null;
   ideaEditDeadline: string;
   canEditIdea: boolean;
+  /** True while the idea is locked because the team has not paid yet (step 3 comes before step 4). */
+  ideaNeedsPayment: boolean;
   /** "lead" = Lead or Co-lead (can edit); "member" = members 3-6 (read-only). */
   viewerRole: "owner" | "lead" | "member";
   ownerEmail: string | null;
