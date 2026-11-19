@@ -137,7 +137,7 @@ export async function getMyApplication(ownerEmail: string): Promise<Response> {
     amountDue: a.amountDue,
     createdAt: a.createdAt,
     paidAt: a.paidAt,
-    team: { teamName: a.teamName, institution: a.institution },
+    team: { teamName: a.teamName, institution: a.institution, stream: (data as { stream?: string } | null)?.stream ?? null },
     // Used by the website to build the (encrypted) GEvents payment link.
     founderEmail: data?.founder?.email ?? null,
     founder: data?.founder
@@ -152,20 +152,22 @@ export async function getMyApplication(ownerEmail: string): Promise<Response> {
     submittedAt: a.submittedAt,
     ideaUpdatedAt: a.ideaUpdatedAt,
     ideaEditDeadline: config.ideaEditDeadline,
-    // Payment is the LAST step now: teams fill in and submit their idea first, then pay. Only the deadline and the role limit editing.
-    canEditIdea: canEdit && open,
+    // Payment comes BEFORE the idea (step 3 of 4): the idea is locked until the team is paid. The deadline and the role also limit editing.
+    canEditIdea: canEdit && open && a.status === "paid",
+    ideaNeedsPayment: canEdit && open && a.status !== "paid",
     viewerRole: owner ? "owner" : canEdit ? "lead" : "member",
     ownerEmail: canEdit ? null : a.ownerEmail,
     members: teamMembers(data),
   });
 }
 
-/** Shared gate for every edit: who may edit, and before the deadline (payment is no longer needed first). */
+/** Shared gate for every edit: who may edit, before the deadline, and only once the team has paid (step 3 comes before the idea, step 4). */
 async function editable(email: string) {
   const found = await applicationFor(email);
   if (!found) return { err: json({ error: "not_found" }, 404) };
   if (!found.canEdit) return { err: json({ error: "read_only", message: "Only the Lead, Co-lead or registering account can edit." }, 403) };
   if (Date.now() > config.ideaEditDeadline.getTime()) return { err: json({ error: "deadline_passed", deadline: config.ideaEditDeadline }, 403) };
+  if (found.a.status !== "paid") return { err: json({ error: "payment_required", message: "Pay the registration fee to unlock your idea." }, 403) };
   return { a: found.a };
 }
 

@@ -6,17 +6,17 @@ export function Partners() {
   return (
     <Section id="partners" tone="antique">
       <SectionHeading
-        tone="antique"
+        tone="paper"
         eyebrow="GIC ecosystem"
         title={<>Great things grow <Accent>together</Accent></>}
         description="Collaborating with organisations that support innovation, entrepreneurship and student growth."
       />
       <ul className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {partners.map((p) => {
+        {partners.filter((p) => !p.sponsorsOnly).map((p) => {
           const tweak = p.maxH || p.shiftX ? { ...(p.maxH ? { maxHeight: p.maxH } : {}), ...(p.shiftX ? { transform: `translateX(${p.shiftX}%)` } : {}) } : undefined;
           const logo = <Image src={p.src} width={p.width} height={p.height} alt={p.name} sizes="(min-width:1024px) 15vw, 40vw" style={tweak} className="max-h-[78%] w-auto object-contain" />;
           return (
-            <li key={p.name} className="aspect-[3/2] rounded-2xl bg-white shadow-sm">
+            <li key={p.name} className="aspect-[3/2] sticker-sm bg-white">
               {p.href ? (
                 <a
                   href={p.href} target="_blank" rel="noopener noreferrer" aria-label={`${p.name} (opens in a new tab)`}

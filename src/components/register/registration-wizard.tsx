@@ -5,6 +5,7 @@ import { startTransition, useActionState, useEffect, useRef, useState } from "re
 import { registerTeam, type RegisterState } from "@/app/register/actions";
 import { Button } from "@/components/ui/button";
 import { tracks } from "@/content/tracks";
+import { STREAMS, OTHER_STREAM, streamLabel } from "@/lib/registration/streams";
 import { GENDERS, validateStep, type FieldErrors, type StepId } from "@/lib/registration/schema";
 import { cn } from "@/lib/cn";
 import { clearStoredReferral, readStoredReferral } from "@/lib/referral";
@@ -17,23 +18,24 @@ const steps: { id: StepId; title: string }[] = [
 ];
 
 // What the progress bar shows: the whole journey, including the two steps that happen after this form.
-const journey = ["Team & track", "Team members", "Submit idea", "Pay now"];
+const journey = ["Team & track", "Team members", "Pay now", "Submit idea"];
 
 const genderOptions = GENDERS.map((g) => ({ value: g, label: g.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase()) }));
 const initial: RegisterState = { status: "idle" };
 
 const owns: Record<StepId, string[]> = {
-  team: ["track", "teamName", "referralCode", "institution", "address", "cityState"],
+  team: ["track", "teamName", "referralCode", "institution", "stream", "address", "cityState"],
   members: ["founder", "cofounder", "member3", "member4", "member5", "member6"],
   confirm: ["declaration", "remarks"],
 };
 
-/** Steps 1-2 of the journey (after Google sign-in): who is on the team. The idea (step 3) and the payment (step 4, last) follow in the portal. */
+/** Steps 1-2 of the journey (after Google sign-in): who is on the team. Payment (step 3) and the idea (step 4) follow in the portal. */
 export function TeamWizard({ defaultTrack, email, paidFirst = false, defaultReferral = "" }: { defaultTrack: "junior" | "main" | ""; email: string; paidFirst?: boolean; defaultReferral?: string }) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(registerTeam, initial);
   const [step, setStep] = useState(0);
   const [track, setTrack] = useState<string>(defaultTrack);
+  const [stream, setStream] = useState("");
   const [memberCount, setMemberCount] = useState(2); // founder + co-founder are always shown
   const [clientErrors, setClientErrors] = useState<FieldErrors>({});
   const formRef = useRef<HTMLFormElement>(null);
@@ -91,10 +93,10 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false, defaultRefe
         Signed in as <strong className="text-ink">{email}</strong>. This account will manage your team&apos;s application.
       </p>
 
-      {/* The whole journey. Paid first: "4 Pay now" is already done, so the order reads 4 (done) -> 1 -> 2 -> 3. */}
+      {/* The whole journey. Paid first: "3 Pay now" is already done, so the order reads 3 (done) -> 1 -> 2 -> 4. */}
       <ol className="mb-10 grid grid-cols-4 gap-2" aria-label="Progress">
         {(paidFirst
-          ? [{ n: 4, title: "Pay now", done: true }, { n: 1, title: "Team & track" }, { n: 2, title: "Team members" }, { n: 3, title: "Submit idea" }]
+          ? [{ n: 3, title: "Pay now", done: true }, { n: 1, title: "Team & track" }, { n: 2, title: "Team members" }, { n: 4, title: "Submit idea" }]
           : journey.map((title, i) => ({ n: i + 1, title }))
         ).map((item, i) => {
           const active = paidFirst ? Math.min(step, 1) + 1 === i : i === step;
@@ -113,7 +115,7 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false, defaultRefe
       {paidFirst && (
         <p role="status" className="mb-6 rounded-xl bg-mint-soft px-4 py-3 text-sm text-ink">
           <strong>We received your payment.</strong> Now tell us about your team. Use the <strong>email you paid with on GEvents</strong> as the Lead&apos;s email
-          (or add it as a team member) so we can attach your payment automatically, then you&apos;ll submit your idea.
+          (or add it as a team member) so we can attach your payment automatically, then you&apos;ll submit your idea (step 4).
         </p>
       )}
 
@@ -132,7 +134,7 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false, defaultRefe
         <div className="grid gap-4 sm:grid-cols-2" role="radiogroup" aria-label="Track">
           {tracks.map((t) => (
             <label key={t.id} className={cn("cursor-pointer rounded-card border-2 p-5 transition-colors", track === t.id ? "border-brand bg-mint-soft" : "border-line hover:border-brand/40")}>
-              <input type="radio" name="track" value={t.id} checked={track === t.id} onChange={() => setTrack(t.id)} className="sr-only" />
+              <input type="radio" name="track" value={t.id} checked={track === t.id} onChange={() => { setTrack(t.id); setStream(""); }} className="sr-only" />
               <span className="font-display text-xl font-bold">{t.name}</span>
               <span className="mt-1 block text-sm text-muted">{t.audience}</span>
               <span className="mt-3 block font-semibold text-brand">₹{t.fee} per team · {t.teamSize}</span>
@@ -145,6 +147,21 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false, defaultRefe
           <TextField label="Referral code (optional)" name="referralCode" maxLength={30} autoComplete="off" defaultValue={defaultReferral} error={errors.referralCode} />
         </div>
         <TextField label={track === "junior" ? "School name" : "College / institution"} name="institution" maxLength={150} required error={errors.institution} />
+        {track ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <SelectField
+              key={track}
+              label={streamLabel(track)}
+              name="stream"
+              required
+              error={errors.stream}
+              placeholder={track === "junior" ? "Select your stream" : "Select your programme"}
+              options={STREAMS[track as "junior" | "main"].map((s) => ({ value: s, label: s }))}
+              onChange={(e) => setStream(e.target.value)}
+            />
+            {stream === OTHER_STREAM && <TextField label={`Your ${streamLabel(track).toLowerCase()}`} name="streamOther" maxLength={70} required error={errors.stream} />}
+          </div>
+        ) : null}
         <TextAreaField label="Address" name="address" maxLength={200} required error={errors.address} />
         <TextField label="City & state" name="cityState" maxLength={100} required error={errors.cityState} />
       </fieldset>
@@ -192,7 +209,7 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false, defaultRefe
         {step < steps.length - 1 ? (
           <Button type="button" variant="brand" onClick={next}>Continue →</Button>
         ) : (
-          <Button type="submit" disabled={pending || redirecting}>{pending || redirecting ? "Saving…" : paidFirst ? "Save team & continue" : "Save team & submit my idea"}</Button>
+          <Button type="submit" disabled={pending || redirecting}>{pending || redirecting ? "Saving…" : paidFirst ? "Save team & continue" : "Save team & continue to payment"}</Button>
         )}
       </div>
     </form>

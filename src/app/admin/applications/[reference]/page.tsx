@@ -105,6 +105,7 @@ async function Body({ params, searchParams }: { params: Promise<{ reference: str
             <p className="font-mono font-bold text-brand">{a.reference}</p>
             <dl className="mt-3 space-y-2">
               <div><dt className="text-muted">Track</dt><dd className="font-semibold capitalize">{a.track} · ₹{a.amountDue / 100}</dd></div>
+              <div><dt className="text-muted">{a.track === "junior" ? "Stream" : "Programme"}</dt><dd className="font-semibold">{(a.data as { stream?: string } | null)?.stream || "—"}</dd></div>
               <div><dt className="text-muted">Sign-in account</dt><dd className="break-all font-semibold">{a.ownerEmail ?? "—"}</dd></div>
               <div><dt className="text-muted">Registered</dt><dd>{fmt(a.createdAt)}</dd></div>
               <div><dt className="text-muted">Paid</dt><dd>{fmt(a.paidAt)}</dd></div>

@@ -35,13 +35,13 @@ async function load() {
   if (!user) redirect("/signin?next=/portal");
   const app = await fetchMyApplication(user.email);
   if (!app) redirect("/register");
-  // Open to every registered team: the idea is submitted first, and payment is the last step (shown at the bottom).
+  // Open to every registered team: pay first (step 3), then the idea (step 4) unlocks.
   return { user, app };
 }
 
 async function Heading() {
   const { app } = await load();
-  const step = app.status === "paid" ? (app.submittedAt ? "Your entry is complete" : "Step 3 of 4: submit your idea") : app.submittedAt ? "Step 4 of 4: pay the registration fee" : "Step 3 of 4: submit your idea, then pay";
+  const step = app.status !== "paid" ? "Step 3 of 4: pay the registration fee" : app.submittedAt ? "Your entry is complete" : "Step 4 of 4: submit your idea";
   return (
     <>
       <p className="text-xs font-bold uppercase tracking-[0.22em] text-mint">Team portal · {step}</p>
@@ -69,9 +69,9 @@ async function Body() {
   return (
     <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_20rem]">
       <div>
-        <h2 className="font-display text-3xl font-bold">Your idea</h2>
+        <h2 className="font-display text-3xl font-bold">{paid || member ? "Your idea" : "Pay to unlock your idea"}</h2>
         <p className="mt-2 text-muted">
-          {member ? "Your team's submission, as it stands." : <>Choose your theme and tell us about your idea. You can edit everything — including your deck — as often as you like
+          {member ? "Your team's submission, as it stands." : !paid ? "Pay the registration fee first (step 3). The idea form (step 4) opens as soon as your payment is confirmed." : <>Choose your theme and tell us about your idea. You can edit everything — including your deck — as often as you like
           until <strong className="text-ink">{deadline}</strong>.</>}
         </p>
         {member && (
@@ -79,7 +79,7 @@ async function Body() {
             You&apos;re viewing this team as a member. The idea is managed by <strong>{app.ownerEmail}</strong>, the account that registered the team, so it&apos;s read-only here.
           </p>
         )}
-        {!member && !app.canEditIdea && (
+        {!member && !app.canEditIdea && !app.ideaNeedsPayment && (
           <p role="status" className="mt-5 rounded-xl bg-cream-soft p-4 text-sm font-medium">
             The editing deadline has passed. Your submission is shown below as it was locked.
           </p>
@@ -95,7 +95,7 @@ async function Body() {
           {paid ? (
             <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-mint-soft px-3 py-1 text-sm font-semibold text-brand"><span aria-hidden>✓</span> Payment confirmed</p>
           ) : (
-            <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-gold/30 px-3 py-1 text-sm font-semibold text-ink"><span aria-hidden>●</span> Payment pending (last step)</p>
+            <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-gold/30 px-3 py-1 text-sm font-semibold text-ink"><span aria-hidden>●</span> Payment pending (step 3)</p>
           )}
           <dl className="mt-4 space-y-3 text-sm">
             <div><dt className="text-muted">Reference</dt><dd className="font-mono font-bold text-brand">{app.reference}</dd></div>
@@ -118,9 +118,9 @@ async function Body() {
           </div>
         )}
         <div className={`rounded-card p-6 text-sm ${app.submittedAt ? "bg-mint-soft" : "bg-cream-soft"}`}>
-          <p className="font-display text-lg font-bold">{app.submittedAt ? "Idea submitted ✓" : "Idea not submitted yet"}</p>
+          <p className="font-display text-lg font-bold">{app.submittedAt ? "Idea submitted ✓" : paid ? "Idea not submitted yet" : "Idea opens after payment"}</p>
           <p className="mt-1 text-muted">
-            {member ? (app.submittedAt ? "The team has submitted everything." : "The team hasn't finished the submission yet.") : app.submittedAt ? (paid ? "You're all set. Edit any time before the deadline." : "Now pay the registration fee at the bottom of the page to confirm your entry.") : "Complete your idea, deck and video, then press Submit. Payment is the last step."}
+            {member ? (app.submittedAt ? "The team has submitted everything." : "The team hasn't finished the submission yet.") : app.submittedAt ? "You're all set. Edit any time before the deadline." : paid ? "Complete your idea, deck and video, then press Submit." : "Pay the registration fee (step 3) to unlock the idea step."}
           </p>
         </div>
       </aside>

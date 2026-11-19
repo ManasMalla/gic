@@ -27,7 +27,7 @@ export function MobileNav({ items }: { items: readonly Item[] }) {
         aria-controls="mobile-menu"
         aria-label={open ? "Close menu" : "Open menu"}
         onClick={() => setOpen((v) => !v)}
-        className="grid size-11 place-items-center rounded-full border border-white/15 bg-white/5"
+        className="sticker-sm grid size-11 place-items-center bg-white text-night-2"
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           {open ? <path d="M4 4l12 12M16 4L4 16" /> : <path d="M3 7h14M3 13h14" />}
@@ -37,17 +37,16 @@ export function MobileNav({ items }: { items: readonly Item[] }) {
         <nav
           id="mobile-menu"
           aria-label="Mobile"
-          className="fixed inset-x-3 top-[5.25rem] z-40 max-h-[calc(100dvh-6.5rem)] overflow-y-auto rounded-3xl border border-white/10 bg-night/95 px-6 pb-7 pt-3 text-white shadow-2xl backdrop-blur-xl"
+          className="fixed inset-x-0 top-[4.5rem] z-40 max-h-[calc(100dvh-4.5rem)] overflow-y-auto border-t-2 border-beige/60 bg-white px-5 pb-8 pt-2 shadow-xl"
         >
           <ul className="flex flex-col">
-            {items.map((item, i) => (
+            {items.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-baseline gap-4 border-b border-white/10 py-4 font-display text-2xl font-bold tracking-tight"
+                  className="block border-b border-beige/50 py-4 font-display text-2xl font-bold text-night-2"
                 >
-                  <span className="text-xs font-semibold tracking-widest text-lit">{String(i + 1).padStart(2, "0")}</span>
                   {item.label}
                 </Link>
               </li>
@@ -56,9 +55,9 @@ export function MobileNav({ items }: { items: readonly Item[] }) {
           <Link
             href="/register"
             onClick={() => setOpen(false)}
-            className="mt-6 block rounded-full bg-lit px-6 py-3.5 text-center text-base font-bold text-night"
+            className="mt-6 block rounded-[14px] bg-brand px-6 py-3.5 text-center text-base font-bold text-cream"
           >
-            Register
+            Register your team
           </Link>
         </nav>
       )}

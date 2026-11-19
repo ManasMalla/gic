@@ -9,7 +9,7 @@ const rank = ["border-lit bg-lit text-night", "border-white/30 bg-white/10 text-
 
 export function Prizes() {
   return (
-    <Section id="prizes" tone="night">
+    <Section id="prizes" tone="night2">
       <div className="pointer-events-none absolute left-1/2 top-24 h-[26rem] w-[40rem] -translate-x-1/2 rounded-full bg-lit/15 blur-[130px]" aria-hidden />
       <div className="relative">
         <div className="text-center">

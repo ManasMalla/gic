@@ -27,17 +27,17 @@ export function HeroCountdown({ closesAt }: { closesAt: string }) {
 
   const left = now === null ? null : target - now;
   if (left !== null && left <= 0) {
-    return <p className="text-lg font-semibold text-lit">Registration is now closed</p>;
+    return <p className="text-lg font-bold text-night-2">Registration is now closed</p>;
   }
   const t = left === null ? null : parts(left);
 
   return (
     <div role="timer" aria-label={t ? `${t.Days} days ${t.Hours} hours ${t.Minutes} minutes ${t.Seconds} seconds left` : "Time left"}>
-      <div className="grid max-w-md grid-cols-4 gap-3">
+      <div className="mx-auto grid max-w-md grid-cols-4 gap-3">
         {(["Days", "Hours", "Minutes", "Seconds"] as const).map((k) => (
-          <div key={k} className="rounded-2xl bg-lit px-2 py-3 text-center text-night">
+          <div key={k} className="sticker-sm bg-white px-2 py-3 text-center text-night-2">
             <p className="font-display text-3xl font-bold tabular-nums leading-none sm:text-4xl">{t ? pad(t[k]) : "--"}</p>
-            <p className="mt-1.5 text-[11px] font-medium text-night/70">{k}</p>
+            <p className="mt-1.5 text-[11px] font-semibold text-night-2/70">{k}</p>
           </div>
         ))}
       </div>

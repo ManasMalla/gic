@@ -1,7 +1,7 @@
 import { cn } from "@/lib/cn";
 import { Container } from "./container";
 
-type Tone = "light" | "soft" | "cream" | "dark" | "night" | "night2" | "antique";
+type Tone = "light" | "soft" | "cream" | "dark" | "night" | "night2" | "antique" | "paper";
 
 const tones: Record<Tone, string> = {
   light: "bg-white text-ink",
@@ -11,7 +11,11 @@ const tones: Record<Tone, string> = {
   night: "on-dark bg-night text-white",
   night2: "on-dark bg-night-2 text-white",
   antique: "on-cream bg-cream text-night-2",
+  paper: "on-cream grid-paper text-night-2",
 };
+
+/** The VDC look: coloured sections are rounded bands inset from the page edge; paper sections run edge to edge. */
+const BANDS: Tone[] = ["night", "night2", "antique"];
 
 export function Section({
   id,
@@ -24,6 +28,15 @@ export function Section({
   className?: string;
   children: React.ReactNode;
 }) {
+  if (BANDS.includes(tone)) {
+    return (
+      <section id={id} className="relative px-3 py-3 sm:px-6">
+        <div className={cn("relative mx-auto max-w-[88rem] overflow-hidden rounded-[28px] py-16 sm:py-24", tones[tone], className)}>
+          <Container>{children}</Container>
+        </div>
+      </section>
+    );
+  }
   return (
     <section id={id} className={cn("relative py-20 sm:py-28", tones[tone], className)}>
       <Container>{children}</Container>
@@ -42,21 +55,24 @@ export function SectionHeading({
   eyebrow?: string;
   title: React.ReactNode;
   description?: React.ReactNode;
-  tone?: "light" | "dark" | "night" | "antique";
+  tone?: "light" | "dark" | "night" | "antique" | "paper";
   align?: "left" | "center";
   className?: string;
 }) {
-  if (tone === "night" || tone === "antique") {
-    const cream = tone === "antique";
+  if (tone === "night" || tone === "antique" || tone === "paper") {
+    const cream = tone !== "night";
     return (
       <header className={cn("max-w-4xl", align === "center" && "mx-auto text-center", className)}>
         {eyebrow && (
-          <p className={cn("mb-5 flex items-center gap-3 text-sm font-medium", cream ? "text-night" : "text-lit", align === "center" && "justify-center")}>
-            <span className={cn("h-px w-10", cream ? "bg-night/60" : "bg-lit/70")} aria-hidden />
-            {eyebrow}
+          <p className={cn("mb-5 flex", align === "center" && "justify-center")}>
+            {/* VDC-style tag: small caps in a bordered pill, with a dot */}
+            <span className={cn("inline-flex items-center gap-2 rounded-full border-2 px-3.5 py-1 text-xs font-bold uppercase tracking-[0.14em]", cream ? "border-night-2 text-night-2" : "border-lit/70 text-lit")}>
+              <span className={cn("size-1.5 rounded-full", cream ? "bg-night" : "bg-lit")} aria-hidden />
+              {eyebrow}
+            </span>
           </p>
         )}
-        <h2 className={cn("text-balance font-display text-4xl font-bold leading-[0.98] tracking-tight sm:text-6xl", cream && "text-night")}>{title}</h2>
+        <h2 className={cn("text-balance font-display text-4xl font-bold leading-[0.98] tracking-tight sm:text-6xl", cream && "text-night-2")}>{title}</h2>
         {description && <p className={cn("mt-6 max-w-2xl text-pretty text-lg leading-relaxed", cream ? "text-night-2/70" : "text-white/60")}>{description}</p>}
       </header>
     );
@@ -86,7 +102,13 @@ export function SectionHeading({
   );
 }
 
-/** The one highlighted word in a night-theme headline. */
+/** The one highlighted word in a headline: green with a yellow highlighter underline (cream on dark bands). */
 export function Accent({ children }: { children: React.ReactNode }) {
-  return <span className="text-lit [.on-cream_&]:text-antique-gold">{children}</span>;
+  return (
+    <span className="relative inline-block text-lit [.on-cream_&]:text-night">
+      {children}
+      {/* the VDC highlighter underline */}
+      <span aria-hidden className="absolute inset-x-0 -bottom-[0.06em] h-[0.16em] rounded-full bg-accent" />
+    </span>
+  );
 }

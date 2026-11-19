@@ -64,8 +64,8 @@ export function IdeaForm({ initialApp, payUrl = null, fee = 0 }: { initialApp: M
   const idea = app.idea;
   const submitted = !!app.submittedAt;
   const paid = app.status === "paid";
-  // Pay after submitting. If editing has closed (deadline) a team that never submitted may still pay.
-  const canPay = submitted || !app.canEditIdea;
+  // Step 3 is paying; the idea (step 4) stays locked until the payment is confirmed.
+  const locked = app.ideaNeedsPayment;
   const missing = [
     !idea.theme || !idea.ideaTitle || !idea.problemStatement || !idea.ideaSummary ? "Idea details" : null,
     !app.deck ? "Pitch deck" : null,
@@ -101,9 +101,39 @@ export function IdeaForm({ initialApp, payUrl = null, fee = 0 }: { initialApp: M
         <div role="status" className="rounded-xl bg-mint-soft p-4 text-sm font-medium text-brand">✓ Details saved at {fmt(details.savedAt)}.</div>
       )}
 
+      {app.viewerRole !== "member" && (
+        <section className={`space-y-3 rounded-card border p-5 ${paid ? "border-brand bg-mint-soft" : "border-brand/40 bg-cream-soft"}`}>
+          <h3 className="font-display text-xl font-bold">Step 3: Pay the registration fee</h3>
+          {paid ? (
+            <p className="text-sm"><strong className="text-brand">Payment confirmed ✓</strong> Your idea (step 4) is open{submitted ? ", and you've already submitted it" : ": fill it in below and press Submit"}. You can edit until the deadline.</p>
+          ) : (
+            <>
+              <p className="text-sm text-muted">
+                Pay <strong className="text-ink">₹{fee.toLocaleString("en-IN")}</strong> per team on GITAM GEvents to confirm your entry. Use the team Lead&apos;s email there so we can match your payment automatically.
+                Your idea (step 4) opens as soon as the payment is confirmed.
+              </p>
+              {payUrl ? (
+                <a href={payUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-[#f0c451]">Pay ₹{fee.toLocaleString("en-IN")} on GEvents ↗</a>
+              ) : (
+                <button type="button" disabled className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink opacity-50">Pay on GEvents</button>
+              )}
+              <p className="text-xs text-muted">After paying you&apos;re brought back here. If this page still says pending, it updates within a minute.</p>
+            </>
+          )}
+        </section>
+      )}
+
+      {locked && (
+        <p role="status" className="rounded-xl border border-line bg-white p-4 text-sm text-muted">
+          <strong className="text-ink">Step 4: your idea is locked.</strong> The idea details, pitch deck and video open as soon as your payment is confirmed.
+        </p>
+      )}
+
+      {!locked && (
+        <>
       {/* 1 — details. The video link input (step 3) and the final Submit button (step 4) belong to this form too. */}
       <form id="idea-details" onSubmit={onDetailsSubmit} noValidate className="space-y-6">
-        <h3 className="font-display text-xl font-bold">Your idea</h3>
+        <h3 className="font-display text-xl font-bold">Step 4: Your idea</h3>
         <fieldset disabled={readOnly} className="space-y-6 disabled:opacity-80">
           <SelectField
             key={`theme-${idea.theme}`} label="Innovation theme" name="theme" required error={errors.theme}
@@ -216,28 +246,7 @@ export function IdeaForm({ initialApp, payUrl = null, fee = 0 }: { initialApp: M
         </section>
       )}
 
-      {/* Step 4 of the journey, and the last: pay. Offered to the people who can edit; open once the idea is submitted. */}
-      {app.viewerRole !== "member" && (
-        <section className={`space-y-3 rounded-card border p-5 ${paid ? "border-brand bg-mint-soft" : "border-line"}`}>
-          <h3 className="font-display text-xl font-bold">Step 4: pay the registration fee</h3>
-          {paid ? (
-            <p className="text-sm"><strong className="text-brand">Payment confirmed ✓</strong> Your entry is complete. You can still edit your idea until the deadline.</p>
-          ) : (
-            <>
-              <p className="text-sm text-muted">
-                {canPay
-                  ? <>Pay <strong className="text-ink">₹{fee.toLocaleString("en-IN")}</strong> per team on GITAM GEvents to confirm your entry. Use the team Lead&apos;s email there so we can match your payment automatically.</>
-                  : <>Submit your idea first, then come back here to pay <strong className="text-ink">₹{fee.toLocaleString("en-IN")}</strong> per team. Your entry is confirmed once the payment goes through.</>}
-              </p>
-              {canPay && payUrl ? (
-                <a href={payUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-[#f0c451]">Pay ₹{fee.toLocaleString("en-IN")} on GEvents ↗</a>
-              ) : (
-                <button type="button" disabled className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink opacity-50">Pay on GEvents</button>
-              )}
-              {canPay && <p className="text-xs text-muted">After paying you&apos;re brought back here. If this page still says pending, it updates within a minute.</p>}
-            </>
-          )}
-        </section>
+        </>
       )}
     </div>
   );

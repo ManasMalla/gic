@@ -1,8 +1,8 @@
 import Image from "next/image";
 import { media } from "@/lib/media";
 import { site } from "@/content/site";
+import { Accent } from "@/components/ui/section";
 import { ButtonLink } from "@/components/ui/button";
-import { BrandRays } from "@/components/ui/brand-rays";
 import { Container } from "@/components/ui/container";
 import { HeroCountdown } from "./hero-countdown";
 import { LogoStrip } from "./logo-strip";
@@ -11,47 +11,43 @@ const team = media("/media/gallery/8th-oct/SmartIDEAthon-8th-oct-5.webp");
 
 export function Hero() {
   return (
-    <section id="home" className="on-dark relative -mt-[4.75rem] overflow-hidden bg-night pt-[4.75rem] text-white">
-      <BrandRays />
-      <Container className="relative grid min-h-[calc(100svh-4.75rem)] items-center gap-12 py-16 lg:grid-cols-[1.1fr_0.9fr]">
-        <div>
-          <p className="inline-flex items-center gap-3 text-sm font-medium text-lit">
-            <span className="h-px w-10 bg-lit" aria-hidden />
-            GITAM x Bower · 6th edition · {site.edition}
-          </p>
-          <h1 className="mt-6 font-display font-bold leading-[0.92] tracking-tight">
-            <span className="sr-only">GITAM x Bower Innovation Challenge {site.edition}. </span>
-            <span className="block text-3xl text-lit sm:text-5xl">Pitch your</span>
-            <span className="block text-7xl sm:text-9xl">idea.</span>
-            <span className="mt-1 block text-3xl text-lit sm:text-5xl">Build the</span>
-            <span className="block text-7xl sm:text-9xl">future.</span>
-          </h1>
-          <p className="mt-8 max-w-lg text-lg leading-relaxed text-white/80">
-            India&apos;s premier student venture challenge, nurturing valuable futures for school and college innovators.
-          </p>
+    <section id="home" className="on-cream grid-paper relative overflow-hidden text-night-2">
+      <Container className="relative flex flex-col items-center pb-12 pt-14 text-center sm:pt-20">
+        <p className="inline-flex items-center gap-2 rounded-full border-2 border-night-2 bg-white px-3.5 py-1 text-xs font-bold uppercase tracking-[0.14em]">
+          <span className="size-1.5 rounded-full bg-night" aria-hidden />
+          Registration open · 6th edition
+        </p>
+        <h1 className="mt-7 max-w-5xl text-balance font-display text-6xl font-bold leading-[0.95] tracking-tight sm:text-8xl">
+          <span className="sr-only">GITAM Innovation Challenge {site.edition}. </span>
+          Pitch your idea. Build the <Accent>future.</Accent>
+        </h1>
+        <p className="mt-8 max-w-2xl text-pretty text-lg leading-relaxed text-night-2/80 sm:text-xl">
+          <strong className="font-bold">GITAM Innovation Challenge {site.edition}.</strong> India&apos;s premier student venture challenge, for school and college
+          innovators with an idea and a coach beside them all the way.
+        </p>
 
-          <div className="mt-10">
-            <p className="mb-4 text-sm font-medium text-lit">Registration closes in</p>
-            <HeroCountdown closesAt={site.registration.closesAt} />
-          </div>
-
-          <div className="mt-10 flex flex-wrap gap-3">
-            <ButtonLink href="/register" className="px-8 py-3.5">Register now</ButtonLink>
-            <ButtonLink href="#tracks" variant="glass" className="px-8 py-3.5">Choose your track</ButtonLink>
-          </div>
+        <div className="mt-10">
+          <p className="mb-4 text-sm font-semibold">Registration closes in</p>
+          <HeroCountdown closesAt={site.registration.closesAt} />
         </div>
 
-        {/* Brand imagery: circular crop with an antique-white disc and a dark-green arc behind it. */}
-        <div className="relative mx-auto w-full max-w-[34rem]">
-          <div className="absolute -right-6 -top-6 size-[78%] rounded-full bg-lit" aria-hidden />
-          <div className="absolute -bottom-8 -left-8 size-[55%] rounded-full bg-night-2" aria-hidden />
-          <div className="relative aspect-square overflow-hidden rounded-full border-[10px] border-night">
-            <Image {...team} alt="School students pitching at the GITAM Innovation Challenge" sizes="(min-width:1024px) 34rem, 90vw" priority className="size-full object-cover" />
-          </div>
+        <div className="mt-10 flex flex-wrap justify-center gap-3">
+          <ButtonLink href="/register" className="px-8 py-3.5">Register your team →</ButtonLink>
+          <ButtonLink href="#tracks" variant="outline" className="sticker-sm border-night-2 bg-white px-8 py-3.5 text-night-2 hover:bg-cream">Choose your track</ButtonLink>
         </div>
       </Container>
-      <Container className="relative pb-16">
-        <LogoStrip />
+
+      <Container className="relative pb-12">
+        <div className="sticker relative overflow-hidden">
+          <Image {...team} alt="School students pitching at the GITAM Innovation Challenge" sizes="(min-width:1280px) 80rem, 100vw" priority className="aspect-[16/8] w-full object-cover" />
+          <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-4 bg-gradient-to-t from-night-2/90 to-transparent p-6 text-white sm:p-8">
+            <p className="max-w-md text-lg font-semibold leading-snug">Thousands of ideas from <span className="text-lit">29 states</span>, and one stage in Hyderabad.</p>
+            <ButtonLink href="#about" variant="glass" className="py-2.5">How it works →</ButtonLink>
+          </div>
+        </div>
+        <div className="mt-8 flex justify-center">
+          <LogoStrip />
+        </div>
       </Container>
     </section>
   );

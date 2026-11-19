@@ -11,8 +11,8 @@ export function Faq() {
   const group = faq.find((g) => g.id === active) ?? faq[0];
 
   return (
-    <Section id="faq" tone="antique">
-      <SectionHeading tone="antique" eyebrow="Have questions?" title={<>Frequently asked <Accent>questions</Accent></>} description={faqIntro} />
+    <Section id="faq" tone="paper">
+      <SectionHeading tone="paper" eyebrow="Have questions?" title={<>Frequently asked <Accent>questions</Accent></>} description={faqIntro} />
 
       <div className="mt-12 grid gap-8 lg:grid-cols-[18rem_1fr]">
         <nav aria-label="FAQ categories" className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
@@ -37,7 +37,7 @@ export function Faq() {
           <h3 className="font-display text-2xl font-bold tracking-tight">{group.title}</h3>
           <div className="mt-5 space-y-3">
             {group.items.map((item, i) => (
-              <details key={item.q} open={i === 0} className="group rounded-2xl border border-night/10 bg-white open:border-night/50">
+              <details key={item.q} open={i === 0} className="group sticker-sm bg-white open:border-night/50">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-6 p-5 font-semibold [&::-webkit-details-marker]:hidden">
                   {item.q}
                   <span className="grid size-7 shrink-0 place-items-center rounded-full bg-night/15 text-night transition-transform group-open:rotate-45" aria-hidden>+</span>

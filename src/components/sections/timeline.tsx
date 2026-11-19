@@ -3,7 +3,7 @@ import { juniorTimeline, type Milestone, seniorTimeline, timeline } from "@/cont
 
 export function Timeline() {
   return (
-    <Section id="timeline" tone="night2" className="overflow-hidden">
+    <Section id="timeline" tone="night" className="overflow-hidden">
       <SectionHeading
         tone="night"
         eyebrow="GIC 2026 journey"

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/cn";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 disabled:pointer-events-none disabled:opacity-60";
+  "inline-flex items-center justify-center gap-2 rounded-[14px] px-6 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 disabled:pointer-events-none disabled:opacity-60";
 
 const variants = {
   primary: "bg-brand text-cream hover:bg-brand-dark [.on-dark_&]:bg-lit [.on-dark_&]:text-night [.on-dark_&]:hover:bg-lit-soft",

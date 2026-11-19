@@ -28,9 +28,11 @@ export function Legacy() {
 
       <div className="relative grid min-h-[40rem] gap-10 lg:grid-cols-2 lg:gap-6">
         <div className="flex flex-col justify-center">
-          <p className="flex items-center gap-4 text-sm font-medium text-night-2/80">
-            <span className="h-px w-8 bg-night" aria-hidden />
-            The legacy
+          <p className="flex">
+            <span className="inline-flex items-center gap-2 rounded-full border-2 border-night-2 bg-white px-3.5 py-1 text-xs font-bold uppercase tracking-[0.14em]">
+              <span className="size-1.5 rounded-full bg-night" aria-hidden />
+              The legacy
+            </span>
           </p>
           <h2 className="mt-10 font-display text-6xl font-bold leading-[0.95] tracking-tight sm:text-8xl">
             The legacy
