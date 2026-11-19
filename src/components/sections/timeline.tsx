@@ -3,9 +3,9 @@ import { juniorTimeline, type Milestone, seniorTimeline, timeline } from "@/cont
 
 export function Timeline() {
   return (
-    <Section id="timeline" tone="night" className="overflow-hidden">
+    <Section id="timeline" tone="antique">
       <SectionHeading
-        tone="night"
+        tone="paper"
         eyebrow="GIC 2026 journey"
         title={<>The <Accent>timeline</Accent></>}
         description="Shared dates first, then each track's own path to the final."
@@ -27,18 +27,18 @@ export function Timeline() {
 
 function Rows({ items }: { items: Milestone[] }) {
   return (
-    <ol className="relative mt-8 space-y-3 border-l border-lit/25 pl-8 sm:pl-10">
+    <ol className="relative mt-8 space-y-3 border-l-2 border-night-2/25 pl-8 sm:pl-10">
       {items.map((m) => (
         <li key={m.title} className="relative">
-          <span className="absolute -left-[2.55rem] top-7 size-3 rounded-full bg-lit shadow-[0_0_0_4px_rgb(8_17_14),0_0_16px_rgb(44_207_144/0.8)] sm:-left-[3.05rem]" aria-hidden />
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-            <p className="text-sm font-medium text-lit">{m.stage}</p>
+          <span className="absolute -left-[2.7rem] top-7 size-4 rounded-full border-2 border-night-2 bg-accent sm:-left-[3.2rem]" aria-hidden />
+          <div className="sticker-sm bg-white p-5">
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-night">{m.stage}</p>
             <h3 className="mt-1.5 font-display text-xl font-bold tracking-tight">
               {m.title}
-              {m.badge && <span className="ml-3 rounded-full bg-lit px-2.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wider text-night">{m.badge}</span>}
+              {m.badge && <span className="ml-3 rounded-full border-2 border-night-2 bg-accent px-2.5 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wider text-night-2">{m.badge}</span>}
             </h3>
-            {m.note && <p className="mt-1 text-sm text-white/55">{m.note}</p>}
-            <p className="mt-3 font-display text-lg font-semibold text-white">{m.date}</p>
+            {m.note && <p className="mt-1 text-sm text-night-2/65">{m.note}</p>}
+            <p className="mt-3 font-display text-lg font-semibold text-night">{m.date}</p>
           </div>
         </li>
       ))}
