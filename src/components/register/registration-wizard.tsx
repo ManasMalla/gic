@@ -36,7 +36,6 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false, defaultRefe
   const [step, setStep] = useState(0);
   const [track, setTrack] = useState<string>(defaultTrack);
   const [stream, setStream] = useState("");
-  const [memberCount, setMemberCount] = useState(2); // founder + co-founder are always shown
   const [clientErrors, setClientErrors] = useState<FieldErrors>({});
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -62,8 +61,6 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false, defaultRefe
   }, [state, router, paidFirst]);
 
   const errors = { ...(state.status === "error" ? state.errors : {}), ...clientErrors };
-  const maxMembers = track === "main" ? 6 : 4;
-  const shown = Math.min(memberCount, maxMembers);
   const trackInfo = tracks.find((t) => t.id === track);
 
   function validateCurrent(): FieldErrors {
@@ -168,21 +165,9 @@ export function TeamWizard({ defaultTrack, email, paidFirst = false, defaultRefe
 
       <fieldset hidden={step !== 1} className="space-y-8">
         <legend className="mb-2 font-display text-3xl font-bold">Team members</legend>
-        <p className="text-muted">{track === "main" ? "2–6" : "2–4"} members. Only the Lead and Co-lead are invited to the Grand Finale; everyone receives a certificate.</p>
+        <p className="text-muted">A team is two people: the founder and the co-founder. Both are invited to the Grand Finale and receive a certificate.</p>
         <Member prefix="founder" title="Lead (founder)" errors={errors} required />
         <Member prefix="cofounder" title="Co-lead" errors={errors} required />
-        {[3, 4, 5, 6].filter((n) => n <= shown).map((n) => (
-          <Member
-            key={n}
-            prefix={`member${n}`}
-            title={`Member ${n} (optional)`}
-            errors={errors}
-            onRemove={n === shown ? () => setMemberCount(n - 1) : undefined}
-          />
-        ))}
-        {shown < maxMembers && (
-          <Button type="button" variant="ghost" onClick={() => setMemberCount(shown + 1)}>+ Add member {shown + 1}</Button>
-        )}
       </fieldset>
 
       <fieldset hidden={step !== 2} className="space-y-6">

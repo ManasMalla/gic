@@ -331,13 +331,14 @@ async function updateMembers(reference: string, raw: unknown, actor: string): Pr
 
   const slots = Object.fromEntries(SLOTS.map((k) => [k, parsed.data[k] ?? blankSlot])) as Record<(typeof SLOTS)[number], Slot>;
   const errors: Record<string, string> = {};
-  const maxMembers = app.track === "junior" ? 4 : 6;
+  const maxMembers = 2; // founder + co-founder; slots 3-6 survive only for teams registered before the limit
+  const legacy = (app.data ?? {}) as Record<string, { name?: string; email?: string } | undefined>;
   const seen = new Map<string, string>();
   SLOTS.forEach((k, i) => {
     const p = slots[k];
     const required = k === "founder" || k === "cofounder";
     if (!required && isBlank(p)) return;
-    if (!required && i + 1 > maxMembers) errors[`${k}.name`] = `A ${app.track} team can have at most ${maxMembers} members`;
+    if (!required && i + 1 > maxMembers && !(legacy[k]?.name || legacy[k]?.email)) errors[`${k}.name`] = "A team is the founder and co-founder only";
     if (!p.name) errors[`${k}.name`] ??= "Name is required";
     if (!z.email().safeParse(p.email).success) errors[`${k}.email`] = "Enter a valid email address";
     if (!/^\d{10,15}$/.test(p.phone)) errors[`${k}.phone`] = "Mobile must be 10–15 digits";

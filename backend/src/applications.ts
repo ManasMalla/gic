@@ -42,6 +42,11 @@ export async function insertApplication(body: unknown, ownerEmail: string): Prom
   const existing = await prisma.application.findUnique({ where: { ownerEmail }, select: { reference: true, status: true } });
   if (existing) return json({ error: "already_registered", reference: existing.reference, status: existing.status }, 409);
 
+  // Teams are the founder and co-founder only; the extra member slots remain solely for teams registered earlier.
+  if ([t.member3, t.member4, t.member5, t.member6].some((p) => p && (p.name || p.email || p.phone))) {
+    return json({ error: "validation", errors: { member3: "A team is the founder and co-founder only" } }, 422);
+  }
+
   // Contacts power webhook matching: the owner's Google email plus every teammate's email.
   const contacts = [{ role: "owner", email: ownerEmail, phone: "" }];
   for (const [role, p] of [["founder", t.founder], ["cofounder", t.cofounder], ["member3", t.member3], ["member4", t.member4], ["member5", t.member5], ["member6", t.member6]] as const) {

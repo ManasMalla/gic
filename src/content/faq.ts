@@ -55,7 +55,7 @@ export const faq: FaqGroup[] = [
       {
         "q": "How many members can be there in a team?",
         "a": [
-          "Junior Track teams can have 2–4 members. Senior Track teams can have 2–6 members."
+          "Every team has exactly two members: a founder and a co-founder, on both tracks."
         ]
       },
       {
@@ -79,21 +79,15 @@ export const faq: FaqGroup[] = [
       {
         "q": "Can a team have more than two members?",
         "a": [
-          "Yes. A Junior Track team can have up to four members and a Senior Track team up to six. However, only two members — the Lead and Co-Lead — will be invited to participate in the Grand Finale at GITAM Hyderabad."
+          "No. A team is limited to two people: the founder and the co-founder. Both will be invited to participate in the Grand Finale at GITAM Hyderabad."
         ]
       },
       {
         "q": "What if my team has more than 2 members?",
         "a": [
-          "You can register with the Lead and Co-Lead as the two primary participants. The GITAM VDC team will collect the details of additional eligible members separately and provide certificates to them."
+          "Registration is limited to two people. Choose the founder and the co-founder who will carry the idea forward and register them together."
         ]
       },
-      {
-        "q": "Will other team members receive certificates if they do not attend the Grand Finale?",
-        "a": [
-          "Yes. All registered and eligible team members will receive participation certificates, even if only the Lead and Co-Lead attend the Grand Finale."
-        ]
-      }
     ]
   },
   {
@@ -293,12 +287,6 @@ export const faq: FaqGroup[] = [
         ]
       },
       {
-        "q": "Can all team members travel to Hyderabad?",
-        "a": [
-          "Additional members may travel at their own cost. Official travel and accommodation support is applicable to the two invited finalist members."
-        ]
-      },
-      {
         "q": "Can parents, faculty members or friends accompany finalists?",
         "a": [
           "They may travel separately, subject to visitor and accommodation arrangements. Official travel and accommodation support is only for the invited finalist members."
@@ -314,18 +302,6 @@ export const faq: FaqGroup[] = [
         "q": "Will participants receive a certificate?",
         "a": [
           "Yes. Participation certificates will be provided to eligible registered team members."
-        ]
-      },
-      {
-        "q": "Will members who do not attend the Grand Finale receive certificates?",
-        "a": [
-          "Yes. Registered and eligible team members will receive participation certificates even if they do not attend the Grand Finale."
-        ]
-      },
-      {
-        "q": "If my team has more than two members but only two attend the Finale, will everyone receive certificates?",
-        "a": [
-          "Yes. All eligible registered team members will receive certificates."
         ]
       },
       {
@@ -419,27 +395,9 @@ export const faq: FaqGroup[] = [
     "title": "Finalist Information",
     "items": [
       {
-        "q": "Why are only two members invited to the Grand Finale?",
-        "a": [
-          "To ensure smooth event management and allow each finalist team to be represented on the main stage, only the Lead and Co-Lead will participate in the Grand Finale."
-        ]
-      },
-      {
         "q": "What if the Lead is unavailable?",
         "a": [
           "The team should immediately inform the GITAM VDC team. Any change in designated representatives will be subject to organiser approval."
-        ]
-      },
-      {
-        "q": "Can other team members participate in preparing the pitch?",
-        "a": [
-          "Yes. Teams can involve all members in preparing their idea and presentation. Official Grand Finale representation will be limited to the Lead and Co-Lead."
-        ]
-      },
-      {
-        "q": "Will all team members be recognised?",
-        "a": [
-          "Yes. All eligible registered team members will be recorded as team members and receive participation certificates."
         ]
       },
       {

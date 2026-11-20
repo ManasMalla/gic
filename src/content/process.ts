@@ -53,7 +53,7 @@ export const process: ProcessGroup[] = [
         title: "Register your team",
         body: [
           "Sign in with Google at gic.gitam.edu/register and add your team and members.",
-          "Senior Track: 2–6 members. Junior Track: 2–4 members. The Lead and Co-Lead are the primary participants.",
+          "Every team is two people: a founder and a co-founder.",
           "Registration closes on 31 December 2026.",
         ],
       },

@@ -56,8 +56,8 @@ export const challenges = [
     title: "Idea Screening",
     when: "Last date 31 December 2026",
     columns: [
-      { heading: "Junior Track", lines: [["Eligibility", "School students, Classes 10–12"], ["Team size", "2–4 members, same school"], ["Fee", "₹499 per team"], ["Top 100", "Announced on 1 January 2027"]] },
-      { heading: "Senior Track", lines: [["Eligibility", "UG and PG students & graduates from 2025 onwards"], ["Team size", "2–6 members"], ["Fee", "₹699 per team"], ["Top 100", "Announced on 1 January 2027"]] },
+      { heading: "Junior Track", lines: [["Eligibility", "School students, Classes 10–12"], ["Team size", "2 members, same school"], ["Fee", "₹499 per team"], ["Top 100", "Announced on 1 January 2027"]] },
+      { heading: "Senior Track", lines: [["Eligibility", "UG and PG students & graduates from 2025 onwards"], ["Team size", "2 members"], ["Fee", "₹699 per team"], ["Top 100", "Announced on 1 January 2027"]] },
     ],
     listTitle: "What the jury looks at",
     list: ["Completeness of the submission", "Relevance of the problem", "Quality of thinking", "Clarity of the pitch deck and video"],

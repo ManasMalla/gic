@@ -37,11 +37,11 @@ async function Body({ params, searchParams }: { params: Promise<{ reference: str
   if (res.status === 403) return <NoAccess email={user.email} />;
   if (!res.ok) throw new Error(`application -> ${res.status}`);
   const a = (await res.json()) as App;
-  const maxSlots = a.track === "junior" ? 4 : 6;
+  const maxSlots = 6; // slots 3-6 are shown only when a team registered before the two-person limit already has them
   const order = ["founder", "cofounder", "member3", "member4", "member5", "member6"].slice(0, maxSlots);
   const filled = (k: string) => !!(a.data?.[k]?.email || a.data?.[k]?.name);
   const firstEmpty = order.find((k) => !filled(k));
-  const slots = order.filter((k) => filled(k) || k === firstEmpty || k === "founder" || k === "cofounder");
+  const slots = order.filter((k) => filled(k) || k === "founder" || k === "cofounder");
   const fmt = (d: string | null) => (d ? new Date(d).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" }) : "—");
 
   return (
